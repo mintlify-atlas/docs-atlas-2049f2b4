@@ -1,0 +1,86 @@
+{
+  "projectType": "saas",
+  "projectName": "Onchain Portfolio",
+  "projectDescription": "A blockchain-based portfolio builder that stores professional experiences and projects on-chain using smart contracts and Web3 wallet integration.",
+  "theme": "palm",
+  "primaryColor": "#a855f7",
+  "lightColor": "#ec4899",
+  "darkColor": "#7c3aed",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/wallet-connection",
+              "features/portfolio-management",
+              "features/experience-tracking",
+              "features/project-showcase"
+            ]
+          },
+          {
+            "group": "Smart Contracts",
+            "pages": [
+              "contracts/overview",
+              "contracts/portfolio-contract",
+              "contracts/deployment"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "development/architecture",
+              "development/setup",
+              "development/configuration"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Smart Contract API",
+            "pages": [
+              "api/contract-functions",
+              "api/events"
+            ]
+          },
+          {
+            "group": "React Components",
+            "pages": [
+              "api/components",
+              "api/contexts"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Blockchain-based portfolio storage using Ethereum smart contracts",
+    "Web3 wallet integration with RainbowKit",
+    "Add and manage professional experiences on-chain",
+    "Showcase projects with descriptions and links",
+    "Dark/light theme support",
+    "Responsive portfolio display"
+  ],
+  "publicApiSurface": [
+    "addWork(role, description, link, company)",
+    "getAllWork()",
+    "portfolio(index)",
+    "WorkAdded event",
+    "RainbowProvider context",
+    "ThemeProvider context"
+  ]
+}
