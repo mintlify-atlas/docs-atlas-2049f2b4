@@ -1,0 +1,259 @@
+---
+title: Architecture
+description: Understanding the Next.js application structure, routing, contexts, and component organization
+---
+
+## Tech Stack
+
+Onchain Portfolio is built with modern web technologies:
+
+- **Next.js 14.2.35** - React framework with App Router
+- **React 18.2.0** - UI library
+- **TypeScript 5** - Type-safe development
+- **Tailwind CSS 3.4** - Utility-first styling
+- **shadcn/ui** - Component library built on Radix UI
+- **RainbowKit 2.2** - Web3 wallet connection
+- **Wagmi 2.13** - React hooks for Ethereum
+- **viem 2.21** - Ethereum library
+- **TanStack Query 5.61** - Data fetching and caching
+
+## Project Structure
+
+```
+src/
+├── app/                      # Next.js App Router
+│   ├── contract/            # Contract-related pages
+│   ├── fonts/               # Custom fonts
+│   ├── form/                # Form pages
+│   │   ├── experience/      # Experience form route
+│   │   ├── projects/        # Projects form route
+│   │   └── page.tsx         # Main form page
+│   ├── portfolio/           # Portfolio display page
+│   ├── constants.js         # App constants (contract address)
+│   ├── globals.css          # Global styles
+│   ├── layout.tsx           # Root layout with providers
+│   └── page.tsx             # Home page (redirects to portfolio)
+├── components/              # React components
+│   ├── ui/                  # shadcn/ui components
+│   │   ├── badge.tsx
+│   │   ├── button.tsx
+│   │   ├── card.tsx
+│   │   ├── input.tsx
+│   │   ├── label.tsx
+│   │   └── textarea.tsx
+│   └── theme-toggle.tsx     # Theme switcher component
+├── context/                 # React contexts
+│   ├── RainbowKitContext.js # Web3 provider setup
+│   └── ThemeContext.tsx     # Theme management
+└── lib/
+    └── utils.ts             # Utility functions (cn)
+```
+
+## App Router Structure
+
+The application uses Next.js 14 App Router with file-based routing:
+
+### Root Layout
+
+`src/app/layout.tsx:7-25` defines the root layout with nested providers:
+
+```tsx
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <RainbowProvider>
+          <ThemeProvider>
+            <main className="min-h-screen bg-background text-foreground transition-colors duration-300">
+              {children}
+            </main>
+          </ThemeProvider>
+        </RainbowProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### Routes
+
+- **`/`** - Home page (`app/page.tsx`) - Redirects to `/portfolio`
+- **`/portfolio`** - Portfolio display page
+- **`/form`** - Main form page
+- **`/form/experience`** - Experience form
+- **`/form/projects`** - Projects form
+
+## Context Architecture
+
+### RainbowKitContext
+
+Provides Web3 connectivity throughout the app.
+
+**Location:** `src/context/RainbowKitContext.js`
+
+```javascript
+const config = getDefaultConfig({
+  appName: "My RainbowKit App",
+  projectId: "9b4a97010a2d03a05e71209f233ab457",
+  chains: [sepolia],
+  ssr: true,
+});
+
+export const RainbowProvider = ({ children }) => {
+  return (
+    <RainbowKitContext.Provider value={config}>
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider>{children}</RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </RainbowKitContext.Provider>
+  );
+};
+```
+
+**Key Features:**
+- Configures Wagmi with Sepolia testnet
+- Wraps app with RainbowKit UI
+- Provides TanStack Query client for data fetching
+- Enables SSR support
+
+### ThemeContext
+
+Manages dark/light theme switching with next-themes.
+
+**Location:** `src/context/ThemeContext.tsx`
+
+```tsx
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+  const [theme, setTheme] = useState('dark')
+
+  const toggleTheme = () => {
+    setTheme(prevTheme => prevTheme === 'dark' ? 'light' : 'dark')
+  }
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+  }, [theme])
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      <NextThemesProvider attribute="class" defaultTheme="dark" enableSystem>
+        {children}
+      </NextThemesProvider>
+    </ThemeContext.Provider>
+  )
+}
+
+export const useTheme = () => useContext(ThemeContext)
+```
+
+**Key Features:**
+- Defaults to dark mode
+- Supports system preference detection
+- Class-based theme switching
+- Custom `useTheme` hook for components
+
+## Component Library
+
+### shadcn/ui Components
+
+Pre-built, customizable components in `src/components/ui/`:
+
+- **Badge** - Status indicators
+- **Button** - Interactive buttons with variants
+- **Card** - Content containers
+- **Input** - Form inputs
+- **Label** - Form labels
+- **Textarea** - Multi-line text inputs
+
+### Custom Components
+
+#### ThemeToggle
+
+**Location:** `src/components/theme-toggle.tsx`
+
+```tsx
+export function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme()
+
+  return (
+    <Button variant="ghost" size="icon" onClick={toggleTheme}>
+      {theme === 'light' ? (
+        <Sun className="h-[1.2rem] w-[1.2rem]" />
+      ) : (
+        <Moon className="h-[1.2rem] w-[1.2rem]" />
+      )}
+      <span className="sr-only">Toggle theme</span>
+    </Button>
+  )
+}
+```
+
+Uses Lucide React icons and the `useTheme` hook.
+
+## Utility Functions
+
+### cn (classNames)
+
+**Location:** `src/lib/utils.ts`
+
+```typescript
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+```
+
+Combines `clsx` for conditional classes with `tailwind-merge` to resolve conflicts.
+
+## Constants
+
+### Contract Address
+
+**Location:** `src/app/constants.js`
+
+```javascript
+export const CONTRACT_ADDRESS = "0x96127ffA4375Aee0acF87443d508f2F2bd3f4620";
+```
+
+Stores the deployed smart contract address for portfolio data.
+
+## TypeScript Configuration
+
+Path aliases configured in `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+```
+
+Allows imports like `@/components/ui/button` instead of relative paths.
+
+## Styling Approach
+
+- **Tailwind CSS** for utility-first styling
+- **CSS Variables** for theme colors in `globals.css`
+- **Class-based dark mode** toggling
+- **Component variants** using `class-variance-authority`
+- **Icon library:** Lucide React
+
+## Data Flow
+
+1. **RainbowKit** handles wallet connection
+2. **Wagmi hooks** interact with Ethereum (Sepolia)
+3. **Smart contract** at `CONTRACT_ADDRESS` stores portfolio data
+4. **TanStack Query** caches and manages data fetching
+5. **React components** render UI with data
+6. **ThemeContext** manages appearance across app

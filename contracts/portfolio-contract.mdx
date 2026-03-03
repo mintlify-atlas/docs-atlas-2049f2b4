@@ -1,0 +1,423 @@
+---
+title: "Portfolio Contract Reference"
+description: "Detailed documentation of the Portfolio smart contract interface"
+---
+
+## Contract Interface
+
+The Portfolio contract provides a simple but powerful interface for storing professional work experience on the blockchain.
+
+## Data Structures
+
+### ProofOfWork Struct
+
+The `ProofOfWork` struct represents a single work experience entry:
+
+<ParamField path="role" type="string">
+  The job title or role name (e.g., "Senior Software Engineer")
+</ParamField>
+
+<ParamField path="description" type="string">
+  Detailed description of the work performed and responsibilities
+</ParamField>
+
+<ParamField path="link" type="string">
+  URL link to additional resources, project page, or company website
+</ParamField>
+
+<ParamField path="company" type="string">
+  The name of the company or organization
+</ParamField>
+
+<ParamField path="timestamp" type="uint256">
+  Unix timestamp of when this work entry was added to the blockchain
+</ParamField>
+
+## Contract Functions
+
+### addWork
+
+Adds a new work experience entry to the portfolio.
+
+```solidity
+function addWork(
+  string memory _role,
+  string memory _description,
+  string memory _link,
+  string memory _company
+) public nonpayable
+```
+
+#### Parameters
+
+<ParamField path="_role" type="string" required>
+  The job title or role name
+</ParamField>
+
+<ParamField path="_description" type="string" required>
+  Description of the work and responsibilities
+</ParamField>
+
+<ParamField path="_link" type="string" required>
+  URL link to additional information
+</ParamField>
+
+<ParamField path="_company" type="string" required>
+  Company or organization name
+</ParamField>
+
+#### Events Emitted
+
+- `WorkAdded(string role, string company, uint256 timestamp)`
+
+#### Example Usage
+
+```typescript
+import { useWriteContract } from "wagmi";
+import { CONTRACT_ADDRESS } from "./constants";
+import abi from "./contract/abi.json";
+
+function AddExperience() {
+  const { writeContract } = useWriteContract();
+
+  const createPOW = async () => {
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      abi,
+      functionName: "addWork",
+      args: [
+        "Senior Developer",
+        "Led development of decentralized applications",
+        "https://example.com",
+        "Tech Company"
+      ],
+    });
+  };
+
+  return <button onClick={createPOW}>Add Experience</button>;
+}
+```
+
+### getAllWork
+
+Retrieves all work experience entries from the portfolio.
+
+```solidity
+function getAllWork() public view returns (ProofOfWork[] memory)
+```
+
+#### Returns
+
+<ResponseField name="ProofOfWork[]" type="tuple[]">
+  Array of all work experience entries, each containing:
+  
+  <ResponseField name="role" type="string">
+    The job title or role
+  </ResponseField>
+  
+  <ResponseField name="description" type="string">
+    Work description
+  </ResponseField>
+  
+  <ResponseField name="link" type="string">
+    Reference URL
+  </ResponseField>
+  
+  <ResponseField name="company" type="string">
+    Company name
+  </ResponseField>
+  
+  <ResponseField name="timestamp" type="uint256">
+    Unix timestamp when added
+  </ResponseField>
+</ResponseField>
+
+#### Example Usage
+
+```typescript
+import { useReadContract } from "wagmi";
+import { CONTRACT_ADDRESS } from "./constants";
+import abi from "./contract/abi.json";
+
+function PortfolioList() {
+  const { data: workEntries } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi,
+    functionName: "getAllWork",
+  });
+
+  return (
+    <div>
+      {workEntries?.map((work, index) => (
+        <div key={index}>
+          <h3>{work.role} at {work.company}</h3>
+          <p>{work.description}</p>
+          <a href={work.link}>Learn more</a>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+### portfolio
+
+Accesses an individual work entry by index.
+
+```solidity
+function portfolio(uint256 index) public view returns (
+  string memory role,
+  string memory description,
+  string memory link,
+  string memory company,
+  uint256 timestamp
+)
+```
+
+#### Parameters
+
+<ParamField path="index" type="uint256" required>
+  The zero-based index of the work entry to retrieve
+</ParamField>
+
+#### Returns
+
+<ResponseField name="role" type="string">
+  The job title or role
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Work description
+</ResponseField>
+
+<ResponseField name="link" type="string">
+  Reference URL
+</ResponseField>
+
+<ResponseField name="company" type="string">
+  Company name
+</ResponseField>
+
+<ResponseField name="timestamp" type="uint256">
+  Unix timestamp when added
+</ResponseField>
+
+### owner
+
+Returns the contract owner's address.
+
+```solidity
+function owner() public view returns (address)
+```
+
+#### Returns
+
+<ResponseField name="owner" type="address">
+  The Ethereum address of the contract owner
+</ResponseField>
+
+## Events
+
+### WorkAdded
+
+Emitted whenever a new work experience entry is added to the portfolio.
+
+```solidity
+event WorkAdded(
+  string role,
+  string company,
+  uint256 timestamp
+)
+```
+
+#### Event Parameters
+
+<ParamField path="role" type="string">
+  The job title or role that was added
+</ParamField>
+
+<ParamField path="company" type="string">
+  The company name associated with the work entry
+</ParamField>
+
+<ParamField path="timestamp" type="uint256">
+  Unix timestamp of when the entry was added
+</ParamField>
+
+#### Listening to Events
+
+```typescript
+import { useWatchContractEvent } from "wagmi";
+import { CONTRACT_ADDRESS } from "./constants";
+import abi from "./contract/abi.json";
+
+function WorkEventListener() {
+  useWatchContractEvent({
+    address: CONTRACT_ADDRESS,
+    abi,
+    eventName: "WorkAdded",
+    onLogs(logs) {
+      console.log("New work added:", logs);
+    },
+  });
+}
+```
+
+## Complete ABI
+
+For integration purposes, here's the complete contract ABI:
+
+```json
+[
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_role",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_description",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_link",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_company",
+        "type": "string"
+      }
+    ],
+    "name": "addWork",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "role",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "company",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "WorkAdded",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "getAllWork",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "role",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "link",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "company",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timestamp",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct Portfolio.ProofOfWork[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "portfolio",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "role",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "description",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "link",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "company",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
+```

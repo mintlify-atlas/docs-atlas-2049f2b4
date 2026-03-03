@@ -1,0 +1,72 @@
+---
+title: "Smart Contract Overview"
+description: "Introduction to the Onchain Portfolio smart contract architecture"
+---
+
+## Introduction
+
+The Onchain Portfolio application is powered by a Solidity smart contract deployed on the Sepolia testnet. This contract enables users to store their professional work experience permanently on the blockchain, creating an immutable and verifiable portfolio.
+
+## Contract Architecture
+
+The Portfolio contract is designed with simplicity and efficiency in mind:
+
+- **Owner-based**: The contract has an owner address set at deployment
+- **Work Storage**: Professional experiences are stored as `ProofOfWork` structs
+- **Event Emission**: All work additions emit events for easy indexing
+- **Public Reading**: Anyone can read the portfolio data
+
+## Key Features
+
+### Immutable Work History
+
+Once work experience is added to the blockchain, it becomes part of the permanent record. Each entry includes:
+
+- Role/Position title
+- Company name
+- Description of work performed
+- Link to additional resources
+- Timestamp of when it was added
+
+### Event-Driven Architecture
+
+The contract emits `WorkAdded` events whenever new experience is recorded, making it easy to:
+
+- Track portfolio updates in real-time
+- Build off-chain indexes
+- Create notification systems
+
+### Decentralized Storage
+
+By storing portfolio data on Ethereum's Sepolia testnet, users gain:
+
+- **Censorship resistance**: No central authority can remove entries
+- **Verifiability**: Anyone can verify the authenticity and timestamp
+- **Portability**: Data can be accessed by any application
+
+## Contract Functions
+
+The Portfolio contract provides three main functions:
+
+| Function | Type | Description |
+|----------|------|-------------|
+| `addWork` | Write | Add new work experience to the portfolio |
+| `getAllWork` | Read | Retrieve all work entries as an array |
+| `portfolio` | Read | Access individual work entries by index |
+
+## Deployment Details
+
+- **Network**: Sepolia Testnet
+- **Contract Address**: `0x96127ffA4375Aee0acF87443d508f2F2bd3f4620`
+- **Chain ID**: 11155111
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Contract Details" icon="file-contract" href="/contracts/portfolio-contract">
+    Explore the complete contract interface and data structures
+  </Card>
+  <Card title="Deployment Guide" icon="rocket" href="/contracts/deployment">
+    Learn how to interact with the deployed contract
+  </Card>
+</CardGroup>

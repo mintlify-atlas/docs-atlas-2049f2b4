@@ -1,0 +1,300 @@
+---
+title: 'Context Providers'
+description: 'React Context providers for global state management'
+icon: 'layer-group'
+---
+
+The application uses React Context API to manage global state for wallet connections and theme preferences.
+
+## RainbowProvider
+
+Provides Web3 wallet connection functionality using RainbowKit and Wagmi.
+
+### Setup
+
+The RainbowProvider wraps your application and configures wallet connections:
+
+```tsx
+import { RainbowProvider } from "@/context/RainbowKitContext";
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <RainbowProvider>
+          {children}
+        </RainbowProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+**Source:** `src/app/layout.tsx:15`
+
+### Configuration
+
+The provider is configured with:
+
+```javascript
+import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { WagmiProvider } from "wagmi";
+import { sepolia } from "wagmi/chains";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+
+const config = getDefaultConfig({
+  appName: "My RainbowKit App",
+  projectId: "9b4a97010a2d03a05e71209f233ab457",
+  chains: [sepolia],
+  ssr: true,
+});
+```
+
+**Source:** `src/context/RainbowKitContext.js:13-18`
+
+### Provider Structure
+
+The RainbowProvider composes multiple providers:
+
+```javascript
+export const RainbowProvider = ({ children }) => {
+  return (
+    <RainbowKitContext.Provider value={config}>
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider>
+            {children}
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </RainbowKitContext.Provider>
+  );
+};
+```
+
+**Source:** `src/context/RainbowKitContext.js:27-36`
+
+### Using Wagmi Hooks
+
+Once wrapped in RainbowProvider, you can use Wagmi hooks throughout your app:
+
+```typescript
+import { useAccount, useConnect, useDisconnect } from 'wagmi';
+
+function WalletInfo() {
+  const { address, isConnected } = useAccount();
+  const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
+
+  if (isConnected) {
+    return (
+      <div>
+        <p>Connected: {address}</p>
+        <button onClick={() => disconnect()}>Disconnect</button>
+      </div>
+    );
+  }
+
+  return (
+    <button onClick={() => connect({ connector: connectors[0] })}>
+      Connect Wallet
+    </button>
+  );
+}
+```
+
+### Writing to Contract
+
+Use `useWriteContract` hook to call smart contract functions:
+
+```typescript
+import { useWriteContract } from "wagmi";
+import abi from "./contract/abi.json";
+import { CONTRACT_ADDRESS } from "./constants";
+
+const { data, error, writeContract } = useWriteContract();
+
+const addWork = async () => {
+  writeContract({
+    address: CONTRACT_ADDRESS,
+    abi,
+    functionName: "addWork",
+    args: [role, description, link, company],
+  });
+};
+```
+
+**Source:** `src/app/form/experience/page.tsx:22-38`
+
+### Reading from Contract
+
+Use `useReadContract` hook to read contract state:
+
+```typescript
+import { useReadContract } from "wagmi";
+import abi from "./contract/abi.json";
+import { CONTRACT_ADDRESS } from "./constants";
+
+const { data: works, isLoading } = useReadContract({
+  address: CONTRACT_ADDRESS,
+  abi,
+  functionName: "getAllWork",
+});
+```
+
+---
+
+## ThemeProvider
+
+Manages application theme (light/dark mode) with persistent state.
+
+### Setup
+
+Wrap your app with ThemeProvider (inside RainbowProvider):
+
+```tsx
+import { ThemeProvider } from "@/context/ThemeContext";
+import { RainbowProvider } from "@/context/RainbowKitContext";
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <RainbowProvider>
+          <ThemeProvider>
+            <main className="min-h-screen bg-background text-foreground">
+              {children}
+            </main>
+          </ThemeProvider>
+        </RainbowProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+**Source:** `src/app/layout.tsx:12-24`
+
+### Implementation
+
+The ThemeProvider manages theme state and applies it to the document:
+
+```typescript
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { ThemeProvider as NextThemesProvider } from "next-themes";
+
+const ThemeContext = createContext<{
+  theme: string;
+  toggleTheme: () => void;
+}>({
+  theme: 'dark',
+  toggleTheme: () => {},
+});
+
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+  const [theme, setTheme] = useState('dark');
+
+  const toggleTheme = () => {
+    setTheme(prevTheme => prevTheme === 'dark' ? 'light' : 'dark');
+  };
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      <NextThemesProvider attribute="class" defaultTheme="dark" enableSystem>
+        {children}
+      </NextThemesProvider>
+    </ThemeContext.Provider>
+  );
+};
+```
+
+**Source:** `src/context/ThemeContext.tsx:6-31`
+
+### useTheme Hook
+
+Access theme state and toggle function using the `useTheme` hook:
+
+```typescript
+import { useTheme } from '@/context/ThemeContext';
+
+function MyComponent() {
+  const { theme, toggleTheme } = useTheme();
+
+  return (
+    <div>
+      <p>Current theme: {theme}</p>
+      <button onClick={toggleTheme}>
+        Switch to {theme === 'dark' ? 'light' : 'dark'} mode
+      </button>
+    </div>
+  );
+}
+```
+
+**Source:** `src/context/ThemeContext.tsx:34`
+
+### Theme Toggle Component
+
+The built-in ThemeToggle component provides a ready-to-use theme switcher:
+
+```tsx
+import { ThemeToggle } from "@/components/theme-toggle";
+
+<header>
+  <nav>
+    <ThemeToggle />
+  </nav>
+</header>
+```
+
+The toggle button automatically displays Sun/Moon icons based on the current theme:
+
+```tsx
+export function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
+
+  return (
+    <Button variant="ghost" size="icon" onClick={toggleTheme}>
+      {theme === 'light' ? <Sun /> : <Moon />}
+      <span className="sr-only">Toggle theme</span>
+    </Button>
+  );
+}
+```
+
+**Source:** `src/components/theme-toggle.tsx:8-20`
+
+### TypeScript Interface
+
+```typescript
+interface ThemeContextType {
+  theme: string;          // Current theme: 'light' | 'dark'
+  toggleTheme: () => void; // Function to toggle between themes
+}
+```
+
+**Source:** `src/context/ThemeContext.tsx:6-12`
+
+---
+
+## Provider Order
+
+The correct provider nesting order is critical:
+
+1. **RainbowProvider** (outermost) - Provides Web3 functionality
+2. **ThemeProvider** - Provides theme management
+3. Your application components
+
+```tsx
+<RainbowProvider>
+  <ThemeProvider>
+    <YourApp />
+  </ThemeProvider>
+</RainbowProvider>
+```
+
+This ensures that theme functionality works correctly with wallet connection features.

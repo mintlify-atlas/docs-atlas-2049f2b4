@@ -1,0 +1,111 @@
+---
+title: 'Events'
+description: 'Smart contract events emitted by the Portfolio contract'
+icon: 'bolt'
+---
+
+The Portfolio smart contract emits events to track important state changes on-chain. These events can be monitored by frontend applications to provide real-time updates.
+
+## WorkAdded
+
+Emitted when a new proof-of-work entry is successfully added to the portfolio.
+
+<ResponseField name="role" type="string">
+  The job title or role that was added
+</ResponseField>
+
+<ResponseField name="company" type="string">
+  The company or organization name
+</ResponseField>
+
+<ResponseField name="timestamp" type="uint256">
+  Unix timestamp when the work entry was added to the blockchain
+</ResponseField>
+
+### Event Signature
+
+```solidity
+event WorkAdded(
+  string role,
+  string company,
+  uint256 timestamp
+);
+```
+
+### Listening to Events
+
+You can listen to the `WorkAdded` event using wagmi's `useWatchContractEvent` hook:
+
+```typescript
+import { useWatchContractEvent } from 'wagmi';
+import abi from './contract/abi.json';
+import { CONTRACT_ADDRESS } from './constants';
+
+useWatchContractEvent({
+  address: CONTRACT_ADDRESS,
+  abi,
+  eventName: 'WorkAdded',
+  onLogs(logs) {
+    console.log('New work added!', logs);
+    logs.forEach((log) => {
+      const { role, company, timestamp } = log.args;
+      console.log(`${role} at ${company} added at ${timestamp}`);
+    });
+  },
+});
+```
+
+### Reading Past Events
+
+To retrieve historical `WorkAdded` events from the blockchain:
+
+```typescript
+import { useContractEvent } from 'wagmi';
+import abi from './contract/abi.json';
+import { CONTRACT_ADDRESS } from './constants';
+
+const { data: events } = useContractEvent({
+  address: CONTRACT_ADDRESS,
+  abi,
+  eventName: 'WorkAdded',
+  fromBlock: 0n, // Start from genesis
+});
+
+console.log('All past work entries:', events);
+```
+
+### Use Cases
+
+<CardGroup cols={2}>
+  <Card title="Real-time Updates" icon="refresh">
+    Update your UI immediately when new work entries are added, without polling
+  </Card>
+  
+  <Card title="Activity Feed" icon="list">
+    Build a timeline or activity feed showing when portfolio entries were created
+  </Card>
+  
+  <Card title="Notifications" icon="bell">
+    Trigger toast notifications or alerts when the WorkAdded event is emitted
+  </Card>
+  
+  <Card title="Analytics" icon="chart-line">
+    Track portfolio growth and activity patterns over time
+  </Card>
+</CardGroup>
+
+### Event Data Structure
+
+The event includes key metadata about the work entry:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `role` | string | Job title or position |
+| `company` | string | Organization name |
+| `timestamp` | uint256 | Block timestamp (Unix time) |
+
+<Note>
+  The event does not include the `description` or `link` fields to minimize gas costs. Use the `getAllWork()` or `portfolio(index)` functions to retrieve complete work entry details.
+</Note>
+
+**Source:** `src/app/contract/abi.json:36-58`

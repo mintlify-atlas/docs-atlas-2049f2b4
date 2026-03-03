@@ -1,0 +1,482 @@
+---
+title: Configuration
+description: Environment variables, RainbowKit setup, theme configuration, and build settings
+---
+
+## Environment Variables
+
+The application doesn't require environment variables for basic operation, but you may need them for:
+
+- Custom RPC endpoints
+- API keys for blockchain data providers
+- Analytics or monitoring services
+
+### Creating .env.local
+
+Create a `.env.local` file in the project root:
+
+```bash
+# Optional: Custom RPC endpoint
+NEXT_PUBLIC_RPC_URL=https://sepolia.infura.io/v3/YOUR_KEY
+
+# Optional: WalletConnect Project ID
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id
+
+# Contract address (already in constants.js)
+NEXT_PUBLIC_CONTRACT_ADDRESS=0x96127ffA4375Aee0acF87443d508f2F2bd3f4620
+```
+
+<Warning>
+Never commit `.env.local` to version control. Add it to `.gitignore`.
+</Warning>
+
+## RainbowKit Configuration
+
+### WalletConnect Project ID
+
+**Location:** `src/context/RainbowKitContext.js:13-18`
+
+The app uses RainbowKit for wallet connections:
+
+```javascript
+const config = getDefaultConfig({
+  appName: "My RainbowKit App",
+  projectId: "9b4a97010a2d03a05e71209f233ab457",
+  chains: [sepolia],
+  ssr: true,
+});
+```
+
+<Steps>
+
+### Get Your Own Project ID
+
+1. Visit [WalletConnect Cloud](https://cloud.walletconnect.com)
+2. Create a free account
+3. Create a new project
+4. Copy the Project ID
+
+### Update Configuration
+
+Replace the projectId in `RainbowKitContext.js`:
+
+```javascript
+const config = getDefaultConfig({
+  appName: "Onchain Portfolio", // Update app name
+  projectId: "YOUR_PROJECT_ID_HERE", // Your new project ID
+  chains: [sepolia],
+  ssr: true,
+});
+```
+
+### Supported Wallets
+
+RainbowKit automatically includes:
+- MetaMask
+- Coinbase Wallet
+- WalletConnect
+- Rainbow
+- And 20+ more wallets
+
+</Steps>
+
+## Network Configuration
+
+### Sepolia Testnet
+
+The app is configured for Sepolia testnet:
+
+```javascript
+import { sepolia } from "wagmi/chains";
+
+const config = getDefaultConfig({
+  chains: [sepolia],
+  // ...
+});
+```
+
+**Sepolia Details:**
+- **Chain ID:** 11155111
+- **RPC URL:** https://rpc.sepolia.org
+- **Block Explorer:** https://sepolia.etherscan.io
+- **Faucet:** https://sepoliafaucet.com
+
+### Adding More Networks
+
+To support multiple networks:
+
+```javascript
+import { sepolia, mainnet, polygon } from "wagmi/chains";
+
+const config = getDefaultConfig({
+  chains: [sepolia, mainnet, polygon],
+  // ...
+});
+```
+
+### Custom RPC Endpoints
+
+For better performance, use custom RPC providers:
+
+```javascript
+import { http } from 'viem';
+import { sepolia } from 'wagmi/chains';
+
+const config = getDefaultConfig({
+  chains: [sepolia],
+  transports: {
+    [sepolia.id]: http('https://sepolia.infura.io/v3/YOUR_KEY'),
+  },
+  // ...
+});
+```
+
+## Theme Configuration
+
+### Tailwind CSS Setup
+
+**Location:** `tailwind.config.ts`
+
+```typescript
+export default {
+  darkMode: ["class"],
+  content: [
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+```
+
+### Dark Mode Strategy
+
+The app uses **class-based dark mode**:
+
+```html
+<!-- Light mode -->
+<html lang="en">
+  <body>...</body>
+</html>
+
+<!-- Dark mode -->
+<html lang="en" class="dark">
+  <body>...</body>
+</html>
+```
+
+### Theme Provider Configuration
+
+**Location:** `src/context/ThemeContext.tsx:14-32`
+
+```tsx
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+  const [theme, setTheme] = useState('dark')
+
+  const toggleTheme = () => {
+    setTheme(prevTheme => prevTheme === 'dark' ? 'light' : 'dark')
+  }
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+  }, [theme])
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      <NextThemesProvider attribute="class" defaultTheme="dark" enableSystem>
+        {children}
+      </NextThemesProvider>
+    </ThemeContext.Provider>
+  )
+}
+```
+
+**Configuration Options:**
+- `attribute="class"` - Uses class-based dark mode
+- `defaultTheme="dark"` - Starts in dark mode
+- `enableSystem` - Respects OS preference
+
+### Custom Theme Colors
+
+Add custom colors in `tailwind.config.ts`:
+
+```typescript
+export default {
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          // ... more shades
+          900: '#0c4a6e',
+        },
+      },
+    },
+  },
+};
+```
+
+Use in components:
+
+```tsx
+<div className="bg-brand-500 text-brand-50">
+  Custom colors
+</div>
+```
+
+## Next.js Configuration
+
+### Webpack Customization
+
+**Location:** `next.config.js:3-34`
+
+```javascript
+const nextConfig = {
+  webpack: (config, { isServer }) => {
+    // Ignore .map and .d.ts files
+    config.module.rules.push(
+      {
+        test: /\.map$/,
+        loader: 'ignore-loader'
+      },
+      {
+        test: /\.d\.ts$/,
+        loader: 'ignore-loader'
+      }
+    );
+
+    // Polyfills for Web3 libraries
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+      crypto: require.resolve('crypto-browserify'),
+      stream: require.resolve('stream-browserify'),
+      url: require.resolve('url'),
+      zlib: require.resolve('browserify-zlib'),
+      http: require.resolve('stream-http'),
+      https: require.resolve('https-browserify'),
+      assert: require.resolve('assert'),
+      os: require.resolve('os-browserify'),
+      path: require.resolve('path-browserify'),
+    };
+
+    return config;
+  },
+  transpilePackages: ['@metamask/sdk']
+}
+```
+
+**Why These Settings:**
+- **Polyfills:** Web3 libraries require Node.js modules in browser
+- **Ignore loaders:** Prevent build errors from source maps
+- **transpilePackages:** MetaMask SDK needs transpilation
+
+### TypeScript Configuration
+
+**Location:** `tsconfig.json`
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+```
+
+**Key Settings:**
+- `strict: true` - Enables all strict type checking
+- `paths: { "@/*": ["./src/*"] }` - Import alias
+- `jsx: "preserve"` - Let Next.js handle JSX
+- `target: "ES2017"` - Output modern JavaScript
+
+## PostCSS Configuration
+
+Create `postcss.config.js` if not present:
+
+```javascript
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+```
+
+This enables:
+- Tailwind CSS processing
+- Automatic vendor prefixes
+
+## Smart Contract Configuration
+
+### Contract Address
+
+**Location:** `src/app/constants.js`
+
+```javascript
+export const CONTRACT_ADDRESS = "0x96127ffA4375Aee0acF87443d508f2F2bd3f4620";
+```
+
+### Updating Contract Address
+
+When deploying to different networks:
+
+<Steps>
+
+### Deploy Contract
+
+Deploy your portfolio smart contract to the target network.
+
+### Update Constants
+
+Replace the address in `constants.js`:
+
+```javascript
+export const CONTRACT_ADDRESS = "0xYOUR_NEW_CONTRACT_ADDRESS";
+```
+
+### Update Network Config
+
+Ensure `RainbowKitContext.js` includes the correct chain:
+
+```javascript
+import { mainnet } from "wagmi/chains";
+
+const config = getDefaultConfig({
+  chains: [mainnet], // Update to match deployment
+  // ...
+});
+```
+
+### Verify Contract
+
+Test the connection:
+
+1. Connect wallet to the app
+2. Check contract interaction works
+3. Verify data displays correctly
+
+</Steps>
+
+## Build Configuration
+
+### Production Build
+
+```bash
+npm run build
+```
+
+Outputs:
+- Static HTML pages in `.next/static/`
+- Server components in `.next/server/`
+- Optimized client bundles
+- Image optimization cache
+
+### Environment-Specific Builds
+
+```bash
+# Staging
+NEXT_PUBLIC_ENV=staging npm run build
+
+# Production
+NEXT_PUBLIC_ENV=production npm run build
+```
+
+Access in code:
+
+```typescript
+const isDev = process.env.NODE_ENV === 'development';
+const env = process.env.NEXT_PUBLIC_ENV;
+```
+
+## Performance Optimization
+
+### Image Optimization
+
+Next.js automatically optimizes images:
+
+```tsx
+import Image from 'next/image';
+
+<Image
+  src="/avatar.png"
+  alt="Avatar"
+  width={48}
+  height={48}
+  priority // Load immediately
+/>
+```
+
+### Font Optimization
+
+**Location:** `src/app/layout.tsx:1`
+
+```tsx
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"] });
+```
+
+Next.js automatically:
+- Downloads fonts at build time
+- Self-hosts fonts (no external requests)
+- Prevents layout shift
+
+### Bundle Analysis
+
+Analyze bundle size:
+
+```bash
+npm install @next/bundle-analyzer
+```
+
+Add to `next.config.js`:
+
+```javascript
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+})
+
+module.exports = withBundleAnalyzer(nextConfig)
+```
+
+Run analysis:
+
+```bash
+ANALYZE=true npm run build
+```
+
+## Next Steps
+
+With configuration complete:
+
+1. Review [Architecture](/development/architecture) for code structure
+2. Check [Setup Guide](/development/setup) for development workflow
+3. Customize theme colors and branding
+4. Deploy your own smart contract
+5. Configure custom RPC endpoints for production

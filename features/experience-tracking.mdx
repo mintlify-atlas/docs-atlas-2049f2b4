@@ -1,0 +1,391 @@
+---
+title: Experience Tracking
+description: Add and manage your work experiences on the blockchain
+icon: briefcase
+---
+
+## Overview
+
+Experience tracking is the core feature of Onchain Portfolio, allowing you to permanently record your professional work experiences on the Ethereum blockchain (Sepolia testnet).
+
+<Info>
+  Work experiences are stored **on-chain**, making them immutable, verifiable, and accessible from any device once you connect your wallet.
+</Info>
+
+## Adding Experiences
+
+Experiences are added through a dedicated form at `/form/experience`:
+
+### Experience Form Interface
+
+```tsx src/app/form/experience/page.tsx
+import { useWriteContract } from "wagmi";
+import { CONTRACT_ADDRESS } from "../../constants";
+import abi from "../../contract/abi.json";
+
+export default function ExperienceForm() {
+  const [pow, setpow] = useState({
+    company: "",
+    link: "",
+    position: "",
+    description: "",
+  });
+
+  const {
+    data,
+    error,
+    writeContract: createUserWriteContract,
+  } = useWriteContract();
+
+  const createPOW = async () => {
+    createUserWriteContract({
+      address: CONTRACT_ADDRESS,
+      abi,
+      functionName: "addWork",
+      args: [pow.position, pow.description, pow.link, pow.company],
+    });
+  };
+
+  return (
+    <form className="space-y-4">
+      <Input
+        value={pow.company}
+        onChange={(e) => setpow({ ...pow, company: e.target.value })}
+        placeholder="Company"
+      />
+      <Input
+        value={pow.link}
+        onChange={(e) => setpow({ ...pow, link: e.target.value })}
+        placeholder="Link"
+      />
+      <Input
+        value={pow.position}
+        onChange={(e) => setpow({ ...pow, position: e.target.value })}
+        placeholder="Position"
+      />
+      <Textarea
+        value={pow.description}
+        onChange={(e) => setpow({ ...pow, description: e.target.value })}
+        placeholder="Description"
+      />
+      <Button type="button" onClick={createPOW}>
+        Add Experience
+      </Button>
+    </form>
+  );
+}
+```
+
+### Form Fields
+
+<ParamField path="company" type="string" required>
+  The name of the company or organization where you worked
+</ParamField>
+
+<ParamField path="position" type="string" required>
+  Your role or job title (e.g., "Senior Blockchain Developer")
+</ParamField>
+
+<ParamField path="description" type="string" required>
+  A detailed description of your responsibilities, achievements, or the project you worked on
+</ParamField>
+
+<ParamField path="link" type="string" required>
+  A URL linking to the project, company website, or proof of work
+</ParamField>
+
+## Smart Contract Integration
+
+The experience form interacts with the Portfolio smart contract using Wagmi's `useWriteContract` hook:
+
+### Contract Details
+
+```javascript src/app/constants.js
+export const CONTRACT_ADDRESS = "0x96127ffA4375Aee0acF87443d508f2F2bd3f4620";
+```
+
+<Card title="Contract Address" icon="file-contract">
+  `0x96127ffA4375Aee0acF87443d508f2F2bd3f4620` (Sepolia Testnet)
+</Card>
+
+### Smart Contract Function
+
+The `addWork` function is called to store the experience:
+
+```solidity
+function addWork(
+  string memory _role,
+  string memory _description,
+  string memory _link,
+  string memory _company
+) public
+```
+
+<Note>
+  The function arguments in the contract are: `role`, `description`, `link`, `company` - in that order.
+</Note>
+
+## User Workflow
+
+<Steps>
+  <Step title="Connect Wallet">
+    Ensure your wallet is connected to the Sepolia network. The page won't function without an active wallet connection.
+  </Step>
+  
+  <Step title="Fill Experience Details">
+    Complete all four fields:
+    - Company name
+    - Position/role
+    - Description of your work
+    - Link to proof or project
+  </Step>
+  
+  <Step title="Submit to Blockchain">
+    Click **Add Experience** to initiate the transaction
+  </Step>
+  
+  <Step title="Confirm Transaction">
+    Your wallet (e.g., MetaMask) will prompt you to:
+    - Review transaction details
+    - Confirm gas fees
+    - Sign the transaction
+  </Step>
+  
+  <Step title="Wait for Confirmation">
+    The transaction will be processed on the Sepolia blockchain (usually takes a few seconds)
+  </Step>
+  
+  <Step title="Success Notification">
+    Once confirmed, you'll see: "pow created successfully"
+  </Step>
+</Steps>
+
+## Transaction Handling
+
+The form implements robust transaction handling with success and error states:
+
+```typescript
+useEffect(() => {
+  if (data !== undefined) {
+    alert("pow created successfully");
+    console.log(data);
+  }
+  if (error !== null) {
+    console.log(error);
+    alert("Error creating user");
+  }
+}, [data, error]);
+```
+
+### Success State
+
+When the transaction succeeds:
+- An alert notification appears: "pow created successfully"
+- Transaction data is logged to console
+- Experience is permanently stored on-chain
+- You can view it immediately on your portfolio page
+
+### Error Handling
+
+Common errors include:
+
+<AccordionGroup>
+  <Accordion title="User rejected transaction">
+    The user cancelled the transaction in their wallet. No changes are made.
+  </Accordion>
+  
+  <Accordion title="Insufficient funds">
+    Not enough Sepolia ETH to cover gas fees. Get test ETH from a faucet.
+  </Accordion>
+  
+  <Accordion title="Wrong network">
+    Wallet is connected to a different network. Switch to Sepolia.
+  </Accordion>
+  
+  <Accordion title="Invalid input">
+    One or more fields contain invalid data. Check for empty strings or special characters.
+  </Accordion>
+</AccordionGroup>
+
+## Gas Fees
+
+<Warning>
+  Each experience you add requires a transaction on the Sepolia blockchain, which costs gas fees (paid in test ETH).
+</Warning>
+
+Typical gas cost for adding an experience:
+- **Estimated Gas**: ~100,000 - 150,000 gas units
+- **Cost**: Varies with network congestion (test ETH is free)
+
+<Tip>
+  Get Sepolia test ETH from:
+  - [Alchemy Sepolia Faucet](https://www.alchemy.com/faucets/ethereum-sepolia)
+  - [Sepolia Faucet](https://sepoliafaucet.com/)
+</Tip>
+
+## Retrieving Experiences
+
+Once added, experiences can be retrieved on the portfolio page:
+
+```javascript src/app/portfolio/page.js
+import { useReadContract } from "wagmi";
+
+const { data: isAccountData, error: isAccountError } = useReadContract({
+  abi,
+  address: CONTRACT_ADDRESS,
+  functionName: "getAllWork",
+  args: [],
+});
+
+return (
+  <div>
+    {isAccountData?.map((exp, index) => (
+      <div key={index}>
+        <h3>{exp.role}</h3>
+        <p>{exp.company}</p>
+        <p>{exp.description}</p>
+        <a href={exp.link}>View Project</a>
+      </div>
+    ))}
+  </div>
+);
+```
+
+### Data Structure
+
+Each experience returned from the contract includes:
+
+```typescript
+interface ProofOfWork {
+  role: string;        // Position/title
+  description: string; // Work description
+  link: string;        // Project URL
+  company: string;     // Company name
+  timestamp: uint256;  // Block timestamp (automatically added)
+}
+```
+
+<Info>
+  The `timestamp` field is automatically set by the smart contract when the experience is added, recording the exact time it was stored on-chain.
+</Info>
+
+## Page Navigation
+
+The experience form includes navigation to other parts of the app:
+
+```jsx
+<header>
+  <Link href="/">
+    <span>Portfolio Builder</span>
+  </Link>
+  <Link href="/portfolio">
+    <Button className="gradient-button text-white">
+      <span>View Portfolio</span>
+    </Button>
+  </Link>
+  <ThemeToggle />
+</header>
+```
+
+<CardGroup cols={2}>
+  <Card title="Home" icon="home">
+    Return to the landing page
+  </Card>
+  <Card title="View Portfolio" icon="eye">
+    Navigate to your portfolio to see all experiences
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Clear Descriptions" icon="file-lines">
+    Write detailed descriptions highlighting your key achievements and technologies used
+  </Card>
+  
+  <Card title="Valid Links" icon="link">
+    Ensure links are permanent and accessible (GitHub repos, live demos, company sites)
+  </Card>
+  
+  <Card title="Professional Tone" icon="user-tie">
+    Use professional language as this is permanently stored on the blockchain
+  </Card>
+  
+  <Card title="Verify Before Submit" icon="check">
+    Double-check all information before submitting - it cannot be edited once on-chain
+  </Card>
+</CardGroup>
+
+<Warning>
+  **Important**: Once an experience is added to the blockchain, it **cannot be edited or deleted**. Always verify your information before submitting.
+</Warning>
+
+## Code Example: Complete Flow
+
+```typescript
+import { useState, useEffect } from "react";
+import { useWriteContract } from "wagmi";
+import { CONTRACT_ADDRESS } from "../../constants";
+import abi from "../../contract/abi.json";
+
+export default function AddExperience() {
+  const [experience, setExperience] = useState({
+    company: "Acme Corp",
+    position: "Senior Developer",
+    description: "Led development of DeFi protocol",
+    link: "https://github.com/acme/defi"
+  });
+
+  const { data, error, writeContract } = useWriteContract();
+
+  const handleSubmit = async () => {
+    try {
+      writeContract({
+        address: CONTRACT_ADDRESS,
+        abi,
+        functionName: "addWork",
+        args: [
+          experience.position,
+          experience.description,
+          experience.link,
+          experience.company
+        ],
+      });
+    } catch (err) {
+      console.error("Submission error:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (data) {
+      console.log("✅ Experience added:", data);
+    }
+    if (error) {
+      console.error("❌ Error:", error);
+    }
+  }, [data, error]);
+
+  return (
+    <button onClick={handleSubmit}>
+      Add Experience
+    </button>
+  );
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="View Portfolio" icon="eye" href="/features/portfolio-management">
+    See how experiences are displayed on your portfolio
+  </Card>
+  <Card title="Smart Contract Details" icon="file-contract" href="/contracts/portfolio-contract">
+    Learn about the underlying smart contract
+  </Card>
+  <Card title="Add Projects" icon="folder" href="/features/project-showcase">
+    Add complementary projects to your portfolio
+  </Card>
+  <Card title="Wallet Connection" icon="wallet" href="/features/wallet-connection">
+    Understand wallet integration
+  </Card>
+</CardGroup>

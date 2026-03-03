@@ -1,80 +1,325 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get your first professional experience on-chain in under 5 minutes
 ---
 
-## Get started in three steps
+## Get Started Fast
 
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+This guide will walk you through connecting your wallet, adding your first work experience, and viewing your on-chain portfolio.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  **Prerequisites:** You'll need a Web3 wallet (MetaMask, Coinbase Wallet, etc.) with Sepolia testnet ETH. Get free Sepolia ETH from a [faucet](https://sepoliafaucet.com/).
 </Note>
+
+## Quick Setup
+
+<Steps>
+  <Step title="Clone and Install">
+    Clone the repository and install dependencies:
+    
+    ```bash
+    git clone <repository-url>
+    cd onchain-portfolio
+    npm install
+    ```
+    
+    Start the development server:
+    
+    ```bash
+    npm run dev
+    ```
+    
+    Open [http://localhost:3000](http://localhost:3000) in your browser.
+  </Step>
+
+  <Step title="Connect Your Wallet">
+    Click the **Connect Wallet** button in the navigation bar. RainbowKit will display available wallet options.
+    
+    <Frame>
+      <img src="/images/connect-wallet.png" alt="Connect wallet with RainbowKit" />
+    </Frame>
+    
+    Select your wallet and approve the connection. Make sure you're connected to **Sepolia Testnet**.
+    
+    <Warning>
+      If you don't see Sepolia in your wallet, you'll need to add it manually in your wallet settings.
+    </Warning>
+  </Step>
+
+  <Step title="Navigate to Add Experience">
+    Once connected, click the **Add Experience** button in the header or navigate to `/form/experience`.
+    
+    You'll see a form with fields for your work experience:
+    - **Company** - Organization name
+    - **Link** - URL to project or company
+    - **Position** - Your role or title
+    - **Description** - Details about your work
+  </Step>
+
+  <Step title="Fill in Your Experience">
+    Enter your professional experience details:
+    
+    ```text Example Entry
+    Company: Bhopal DAO
+    Link: https://x.com/Bhopal_Dao
+    Position: Blockchain Developer
+    Description: Developed decentralized portfolio application using Solidity, Next.js, and Web3 technologies. Implemented smart contract for immutable work history storage.
+    ```
+  </Step>
+
+  <Step title="Submit to Blockchain">
+    Click **Add Experience** to submit your entry to the smart contract.
+    
+    Your wallet will prompt you to:
+    1. Review the transaction details
+    2. Confirm the gas fee
+    3. Sign and submit the transaction
+    
+    <Info>
+      The transaction calls the `addWork` function on contract `0x96127ffA4375Aee0acF87443d508f2F2bd3f4620`
+    </Info>
+    
+    Wait for the transaction to be confirmed on Sepolia testnet (usually 15-30 seconds).
+  </Step>
+
+  <Step title="View Your Portfolio">
+    Navigate to `/portfolio` or click **View Portfolio** to see your on-chain experience.
+    
+    <Frame>
+      <img src="/images/portfolio-view.png" alt="Portfolio page with gradient theme" />
+    </Frame>
+    
+    Your experience card will display with:
+    - Purple-to-pink gradient styling
+    - Your role as the heading
+    - Company badge
+    - Description text
+    - Link to your project
+  </Step>
+</Steps>
+
+## Under the Hood
+
+Here's what happens when you add an experience:
+
+<CodeGroup>
+
+```typescript Experience Form (src/app/form/experience/page.tsx)
+"use client";
+
+import { useState } from "react";
+import { useWriteContract } from "wagmi";
+import { CONTRACT_ADDRESS } from "../../constants";
+import abi from "../../contract/abi.json";
+
+export default function ExperienceForm() {
+  const [pow, setpow] = useState({
+    company: "",
+    link: "",
+    position: "",
+    description: "",
+  });
+
+  const { writeContract: createUserWriteContract } = useWriteContract();
+
+  const createPOW = async () => {
+    createUserWriteContract({
+      address: CONTRACT_ADDRESS,
+      abi,
+      functionName: "addWork",
+      args: [pow.position, pow.description, pow.link, pow.company],
+    });
+  };
+
+  return (
+    // Form UI...
+  );
+}
+```
+
+```typescript Portfolio View (src/app/portfolio/page.js)
+import { useAccount, useReadContract } from "wagmi";
+import { CONTRACT_ADDRESS } from "../constants";
+import abi from "../contract/abi.json";
+
+export default function PortfolioPage() {
+  const { address } = useAccount();
+
+  // Read all work experiences from smart contract
+  const { data: isAccountData } = useReadContract({
+    abi,
+    address: CONTRACT_ADDRESS,
+    functionName: "getAllWork",
+    args: [],
+  });
+
+  return (
+    <div>
+      {isAccountData?.map((exp, index) => (
+        <div key={index} className="bg-gray-800/50 rounded-xl p-6">
+          <h3 className="text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-600">
+            {exp.role}
+          </h3>
+          <Badge className="border-pink-500">{exp.company}</Badge>
+          <p>{exp.description}</p>
+          <a href={exp.link}>View Project</a>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+```javascript Contract Address (src/app/constants.js)
+export const CONTRACT_ADDRESS = "0x96127ffA4375Aee0acF87443d508f2F2bd3f4620";
+```
+
+</CodeGroup>
+
+## Smart Contract Interaction
+
+The `addWork` function stores your experience on-chain:
+
+<CodeGroup>
+
+```solidity Contract Function
+function addWork(
+    string memory _role,
+    string memory _description,
+    string memory _link,
+    string memory _company
+) public {
+    ProofOfWork memory newWork = ProofOfWork({
+        role: _role,
+        description: _description,
+        link: _link,
+        company: _company,
+        timestamp: block.timestamp
+    });
+    
+    portfolio.push(newWork);
+    emit WorkAdded(_role, _company, block.timestamp);
+}
+```
+
+```typescript ABI (src/app/contract/abi.json)
+{
+  "inputs": [
+    { "internalType": "string", "name": "_role", "type": "string" },
+    { "internalType": "string", "name": "_description", "type": "string" },
+    { "internalType": "string", "name": "_link", "type": "string" },
+    { "internalType": "string", "name": "_company", "type": "string" }
+  ],
+  "name": "addWork",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+}
+```
+
+</CodeGroup>
+
+## Configuration
+
+The app is configured to work with Sepolia testnet via RainbowKit:
+
+```typescript RainbowKit Configuration (src/context/RainbowKitContext.js)
+import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { WagmiProvider } from "wagmi";
+import { sepolia } from "wagmi/chains";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+
+const config = getDefaultConfig({
+  appName: "My RainbowKit App",
+  projectId: "9b4a97010a2d03a05e71209f233ab457",
+  chains: [sepolia],
+  ssr: true,
+});
+
+const queryClient = new QueryClient();
+
+export const RainbowProvider = ({ children }) => {
+  return (
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>{children}</RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+  );
+};
+```
+
+## Gradient Theme
+
+The signature purple-to-pink gradient is used throughout:
+
+<CodeGroup>
+
+```css Global Styles
+/* Gradient text */
+.text-transparent.bg-clip-text.bg-gradient-to-r.from-purple-400.to-pink-600
+
+/* Gradient background */
+.bg-gradient-to-br.from-gray-900.to-black
+
+/* Gradient button */
+.gradient-button
+```
+
+```jsx Component Example
+<h1 className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+  Portfolio Builder
+</h1>
+
+<Button className="gradient-button text-white">
+  <span>Add Experience</span>
+</Button>
+```
+
+</CodeGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Wallet not connecting">
+    - Make sure you're using a supported wallet (MetaMask, Coinbase Wallet, etc.)
+    - Check that your wallet extension is installed and unlocked
+    - Try refreshing the page
+  </Accordion>
+
+  <Accordion title="Transaction failing">
+    - Ensure you have enough Sepolia ETH for gas fees
+    - Verify you're connected to Sepolia testnet, not Ethereum mainnet
+    - Check that all form fields are filled out
+  </Accordion>
+
+  <Accordion title="Portfolio not displaying">
+    - Wait for transaction confirmation (check on [Sepolia Etherscan](https://sepolia.etherscan.io/))
+    - Refresh the portfolio page after transaction confirms
+    - Check browser console for any errors
+  </Accordion>
+
+  <Accordion title="Need Sepolia ETH">
+    Get free testnet ETH from these faucets:
+    - [Alchemy Sepolia Faucet](https://sepoliafaucet.com/)
+    - [Infura Sepolia Faucet](https://www.infura.io/faucet/sepolia)
+    - [QuickNode Faucet](https://faucet.quicknode.com/ethereum/sepolia)
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Full Installation" icon="download" href="/installation">
+    Learn about all dependencies and setup options
+  </Card>
+  <Card title="Contract Reference" icon="file-contract" href="/contracts/overview">
+    Explore all smart contract functions
+  </Card>
+  <Card title="Features" icon="paintbrush" href="/features/wallet-connection">
+    Explore core features and capabilities
+  </Card>
+  <Card title="Development" icon="rocket" href="/development/setup">
+    Set up your development environment
+  </Card>
+</CardGroup>

@@ -1,0 +1,288 @@
+---
+title: "Contract Deployment"
+description: "Portfolio smart contract deployment information and interaction guide"
+---
+
+## Deployment Information
+
+The Onchain Portfolio smart contract is deployed on the Ethereum Sepolia testnet, providing a test environment for users to store their professional work experience on the blockchain.
+
+### Network Details
+
+<ParamField path="Network" type="string">
+  Sepolia Testnet
+</ParamField>
+
+<ParamField path="Chain ID" type="number">
+  11155111
+</ParamField>
+
+<ParamField path="Contract Address" type="address">
+  `0x96127ffA4375Aee0acF87443d508f2F2bd3f4620`
+</ParamField>
+
+<ParamField path="Block Explorer" type="string">
+  [View on Etherscan](https://sepolia.etherscan.io/address/0x96127ffA4375Aee0acF87443d508f2F2bd3f4620)
+</ParamField>
+
+## Prerequisites
+
+Before interacting with the contract, ensure you have:
+
+1. **MetaMask or compatible wallet** installed
+2. **Sepolia testnet configured** in your wallet
+3. **Test ETH** for gas fees (get from [Sepolia faucet](https://sepoliafaucet.com/))
+
+### Adding Sepolia to MetaMask
+
+If Sepolia isn't configured in your wallet:
+
+1. Open MetaMask
+2. Click the network dropdown
+3. Select "Add Network"
+4. Enter the following details:
+
+```
+Network Name: Sepolia
+RPC URL: https://sepolia.infura.io/v3/YOUR-PROJECT-ID
+Chain ID: 11155111
+Currency Symbol: ETH
+Block Explorer: https://sepolia.etherscan.io
+```
+
+## Contract Configuration
+
+To interact with the Portfolio contract in your application, you'll need to configure the contract address and ABI.
+
+### Setting Up Constants
+
+Create a constants file to store the contract address:
+
+```javascript
+// src/app/constants.js
+export const CONTRACT_ADDRESS = "0x96127ffA4375Aee0acF87443d508f2F2bd3f4620";
+```
+
+### Importing the ABI
+
+The contract ABI should be imported from your local ABI file:
+
+```typescript
+import abi from "./contract/abi.json";
+import { CONTRACT_ADDRESS } from "./constants";
+```
+
+## Interacting with the Contract
+
+### Using Wagmi Hooks
+
+The recommended way to interact with the contract is through [Wagmi](https://wagmi.sh/) hooks.
+
+#### Writing to the Contract
+
+Here's a complete example from the Experience form showing how to add work entries:
+
+```typescript
+"use client";
+
+import { useState, useEffect } from "react";
+import { useWriteContract } from "wagmi";
+import { CONTRACT_ADDRESS } from "../../constants";
+import abi from "../../contract/abi.json";
+
+export default function ExperienceForm() {
+  const [pow, setpow] = useState({
+    company: "",
+    link: "",
+    position: "",
+    description: "",
+  });
+
+  const {
+    data,
+    error,
+    writeContract,
+  } = useWriteContract();
+
+  const createPOW = async () => {
+    try {
+      writeContract({
+        address: CONTRACT_ADDRESS,
+        abi,
+        functionName: "addWork",
+        args: [
+          pow.position,
+          pow.description,
+          pow.link,
+          pow.company,
+        ],
+      });
+    } catch (error) {
+      console.error("Error during submission:", error);
+      alert("Error during submission");
+    }
+  };
+
+  useEffect(() => {
+    if (data !== undefined) {
+      alert("Work added successfully");
+      console.log(data);
+    }
+    if (error !== null) {
+      console.log(error);
+      alert("Error creating entry");
+    }
+  }, [data, error]);
+
+  // Form UI implementation...
+}
+```
+
+#### Reading from the Contract
+
+To read portfolio data, use the `useReadContract` hook:
+
+```typescript
+import { useReadContract } from "wagmi";
+import { CONTRACT_ADDRESS } from "./constants";
+import abi from "./contract/abi.json";
+
+function PortfolioDisplay() {
+  const { data: workEntries, isLoading, error } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi,
+    functionName: "getAllWork",
+  });
+
+  if (isLoading) return <div>Loading portfolio...</div>;
+  if (error) return <div>Error loading portfolio</div>;
+
+  return (
+    <div>
+      {workEntries?.map((work, index) => (
+        <div key={index}>
+          <h3>{work.role} at {work.company}</h3>
+          <p>{work.description}</p>
+          <a href={work.link}>View Details</a>
+          <p>Added: {new Date(Number(work.timestamp) * 1000).toLocaleDateString()}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Transaction Handling
+
+### Gas Considerations
+
+The `addWork` function requires gas to execute. On Sepolia testnet:
+
+- **Typical gas cost**: ~150,000 - 250,000 gas units
+- **Transaction time**: 10-30 seconds
+- **Free test ETH**: Available from Sepolia faucets
+
+### Error Handling
+
+Common errors and solutions:
+
+<Warning>
+  **Insufficient Funds**: Ensure your wallet has enough Sepolia ETH for gas fees. Get test ETH from a [Sepolia faucet](https://sepoliafaucet.com/).
+</Warning>
+
+<Warning>
+  **User Rejected Transaction**: The user cancelled the transaction in their wallet. Handle this gracefully in your UI.
+</Warning>
+
+<Warning>
+  **Wrong Network**: Verify the user is connected to Sepolia testnet (Chain ID: 11155111).
+</Warning>
+
+### Transaction Confirmation
+
+Wait for transaction confirmation before showing success messages:
+
+```typescript
+import { useWaitForTransactionReceipt } from "wagmi";
+
+function TransactionStatus({ hash }) {
+  const { isLoading, isSuccess } = useWaitForTransactionReceipt({
+    hash,
+  });
+
+  if (isLoading) return <div>Confirming transaction...</div>;
+  if (isSuccess) return <div>Transaction confirmed!</div>;
+  
+  return null;
+}
+```
+
+## Monitoring Events
+
+Listen for `WorkAdded` events to track new portfolio entries in real-time:
+
+```typescript
+import { useWatchContractEvent } from "wagmi";
+import { CONTRACT_ADDRESS } from "./constants";
+import abi from "./contract/abi.json";
+
+function EventMonitor() {
+  useWatchContractEvent({
+    address: CONTRACT_ADDRESS,
+    abi,
+    eventName: "WorkAdded",
+    onLogs(logs) {
+      logs.forEach((log) => {
+        console.log("New work added:", {
+          role: log.args.role,
+          company: log.args.company,
+          timestamp: log.args.timestamp,
+        });
+      });
+    },
+  });
+
+  return <div>Monitoring for new work entries...</div>;
+}
+```
+
+## Verifying Transactions
+
+After submitting a transaction, you can verify it on Etherscan:
+
+1. Get the transaction hash from the `writeContract` response
+2. Visit: `https://sepolia.etherscan.io/tx/{TRANSACTION_HASH}`
+3. Check the transaction status and gas used
+
+## Best Practices
+
+<Check>
+  **Validate input** before calling the contract to avoid wasting gas on failed transactions
+</Check>
+
+<Check>
+  **Handle errors gracefully** and provide clear feedback to users
+</Check>
+
+<Check>
+  **Wait for confirmations** before showing success messages
+</Check>
+
+<Check>
+  **Cache read operations** to reduce RPC calls and improve performance
+</Check>
+
+<Check>
+  **Test thoroughly** on Sepolia before deploying to mainnet
+</Check>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Contract Reference" icon="book" href="/contracts/portfolio-contract">
+    View the complete contract API documentation
+  </Card>
+  <Card title="Frontend Integration" icon="code" href="/features/experience-tracking">
+    Learn how to integrate the contract in your React app
+  </Card>
+</CardGroup>

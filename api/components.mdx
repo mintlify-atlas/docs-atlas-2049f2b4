@@ -1,0 +1,301 @@
+---
+title: 'UI Components'
+description: 'Reusable React components built with shadcn/ui'
+icon: 'palette'
+---
+
+The Onchain Portfolio uses a collection of accessible, customizable UI components built with Radix UI primitives and styled with Tailwind CSS.
+
+## Card
+
+A flexible container component for grouping related content.
+
+### Components
+
+- `Card` - Main container with rounded borders and shadow
+- `CardHeader` - Header section with padding
+- `CardTitle` - Styled title text
+- `CardDescription` - Muted description text
+- `CardContent` - Main content area
+- `CardFooter` - Footer section for actions
+
+### Usage Example
+
+```tsx
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+<Card className="glass">
+  <CardHeader>
+    <CardTitle className="text-2xl font-bold">
+      Experience
+    </CardTitle>
+  </CardHeader>
+  <CardContent>
+    <p>Your content here</p>
+  </CardContent>
+</Card>
+```
+
+**Source:** `src/components/ui/card.tsx`
+
+### Props
+
+All Card components extend standard `HTMLDivElement` attributes and accept:
+
+- `className` - Additional CSS classes for customization
+- `children` - React nodes to render inside
+- `ref` - Forward ref support for all components
+
+---
+
+## Button
+
+A versatile button component with multiple variants and sizes.
+
+### Variants
+
+- `default` - Primary button with solid background
+- `destructive` - For destructive actions (red)
+- `outline` - Bordered button with transparent background
+- `secondary` - Secondary style with muted colors
+- `ghost` - Minimal button with hover effects
+- `link` - Text button with underline
+
+### Sizes
+
+- `default` - Standard size (h-9)
+- `sm` - Small size (h-8)
+- `lg` - Large size (h-10)
+- `icon` - Square button for icons (h-9 w-9)
+
+### Usage Example
+
+```tsx
+import { Button } from "@/components/ui/button";
+
+<Button 
+  variant="default" 
+  size="lg"
+  onClick={() => console.log('clicked')}
+>
+  Add Experience
+</Button>
+
+<Button variant="ghost" size="icon">
+  <Icon className="h-4 w-4" />
+</Button>
+```
+
+**Source:** `src/components/ui/button.tsx:43-54`
+
+### Props
+
+```typescript
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+  size?: 'default' | 'sm' | 'lg' | 'icon'
+  asChild?: boolean // Render as a Slot component
+}
+```
+
+---
+
+## Input
+
+A styled text input component with consistent styling across the application.
+
+### Usage Example
+
+```tsx
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+
+const [value, setValue] = useState("");
+
+<Input
+  type="text"
+  value={value}
+  onChange={(e) => setValue(e.target.value)}
+  placeholder="Enter company name"
+  className="bg-gray-800 text-white"
+/>
+```
+
+**Source:** `src/app/form/experience/page.tsx:89-96`
+
+### Props
+
+Extends standard `HTMLInputElement` attributes:
+
+```typescript
+interface InputProps extends React.ComponentProps<"input"> {
+  type?: string
+  className?: string
+  // All standard input attributes
+}
+```
+
+**Source:** `src/components/ui/input.tsx:5-18`
+
+---
+
+## Textarea
+
+A multi-line text input component for longer content.
+
+### Usage Example
+
+```tsx
+import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
+
+const [description, setDescription] = useState("");
+
+<Textarea
+  value={description}
+  onChange={(e) => setDescription(e.target.value)}
+  placeholder="Describe your work experience..."
+  className="bg-gray-800 text-white min-h-[120px]"
+/>
+```
+
+**Source:** `src/app/form/experience/page.tsx:113-123`
+
+### Props
+
+Extends standard `HTMLTextAreaElement` attributes:
+
+```typescript
+interface TextareaProps extends React.ComponentProps<"textarea"> {
+  className?: string
+  // All standard textarea attributes
+}
+```
+
+**Source:** `src/components/ui/textarea.tsx:5-19`
+
+---
+
+## Badge
+
+A small component for displaying status, labels, or categories.
+
+### Variants
+
+- `default` - Primary badge style
+- `secondary` - Secondary muted style
+- `destructive` - For errors or warnings
+- `outline` - Bordered badge
+
+### Usage Example
+
+```tsx
+import { Badge } from "@/components/ui/badge";
+
+<Badge variant="default">Active</Badge>
+<Badge variant="secondary">Completed</Badge>
+<Badge variant="outline">Draft</Badge>
+```
+
+**Source:** `src/components/ui/badge.tsx:30-34`
+
+### Props
+
+```typescript
+interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: 'default' | 'secondary' | 'destructive' | 'outline'
+}
+```
+
+---
+
+## Label
+
+An accessible label component built on Radix UI.
+
+### Usage Example
+
+```tsx
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+
+<div className="space-y-2">
+  <Label htmlFor="email">Email Address</Label>
+  <Input id="email" type="email" />
+</div>
+```
+
+**Source:** `src/components/ui/label.tsx:13-24`
+
+### Props
+
+Extends Radix UI Label primitive with:
+
+```typescript
+interface LabelProps extends React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> {
+  className?: string
+}
+```
+
+---
+
+## Theme Toggle
+
+A specialized button component for switching between light and dark themes.
+
+### Usage Example
+
+```tsx
+import { ThemeToggle } from "@/components/theme-toggle";
+
+<header>
+  <nav>
+    {/* Other nav items */}
+    <ThemeToggle />
+  </nav>
+</header>
+```
+
+**Source:** `src/app/form/experience/page.tsx:75`
+
+### Implementation
+
+The ThemeToggle component uses the `useTheme` hook from ThemeContext:
+
+```tsx
+import { useTheme } from '@/context/ThemeContext';
+import { Button } from "@/components/ui/button";
+import { Moon, Sun } from 'lucide-react';
+
+export function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
+
+  return (
+    <Button variant="ghost" size="icon" onClick={toggleTheme}>
+      {theme === 'light' ? <Sun /> : <Moon />}
+      <span className="sr-only">Toggle theme</span>
+    </Button>
+  );
+}
+```
+
+**Source:** `src/components/theme-toggle.tsx:8-21`
+
+---
+
+## Styling
+
+All components use the `cn()` utility function for conditional class merging:
+
+```typescript
+import { cn } from "@/lib/utils";
+
+// Merge classes conditionally
+const className = cn(
+  "base-classes",
+  condition && "conditional-classes",
+  customClassName
+);
+```
+
+Components are fully customizable through the `className` prop and support Tailwind CSS classes.

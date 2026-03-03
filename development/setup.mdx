@@ -1,0 +1,290 @@
+---
+title: Local Development Setup
+description: Step-by-step guide to setting up your local development environment
+---
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- **Node.js 20+** installed
+- **npm** or **yarn** package manager
+- **Git** for version control
+- A code editor (VS Code recommended)
+- A Web3 wallet (MetaMask) for testing
+
+## Installation
+
+<Steps>
+
+### Clone the Repository
+
+```bash
+git clone <repository-url>
+cd onchain-portfolio
+```
+
+### Install Dependencies
+
+Install all required packages from `package.json`:
+
+```bash
+npm install
+```
+
+This installs:
+
+**Core Dependencies:**
+- `next@14.2.35` - Next.js framework
+- `react@18.2.0` & `react-dom@18.2.0` - React libraries
+- `typescript@^5` - TypeScript compiler
+
+**Web3 Stack:**
+- `@rainbow-me/rainbowkit@^2.2.0` - Wallet connection UI
+- `wagmi@^2.13.2` - Ethereum React hooks
+- `viem@^2.21.52` - Ethereum library
+- `@tanstack/react-query@^5.61.5` - Data fetching
+
+**UI Components:**
+- `@radix-ui/react-label@^2.1.0`
+- `@radix-ui/react-slot@^1.1.0`
+- `lucide-react@^0.462.0` - Icon library
+
+**Styling:**
+- `tailwindcss@^3.4.15` - CSS framework
+- `autoprefixer@^10.4.20` - CSS vendor prefixes
+- `postcss@^8.4.49` - CSS processing
+- `next-themes@^0.4.3` - Theme management
+- `class-variance-authority@^0.7.1` - Component variants
+- `clsx@^2.1.1` & `tailwind-merge@^2.5.5` - Classname utilities
+- `tailwindcss-animate@^1.0.7` - Animation utilities
+
+**Build Tools:**
+- `@typescript-eslint/eslint-plugin@^8.16.0`
+- `@typescript-eslint/parser@^8.16.0`
+- `eslint@^8` & `eslint-config-next@^14.1.0`
+
+**Polyfills (for Web3 compatibility):**
+- `crypto-browserify`, `stream-browserify`, `https-browserify`
+- `browserify-zlib`, `stream-http`, `assert`
+- `os-browserify`, `path-browserify`, `url`
+- `ignore-loader` - For webpack configuration
+- `pino-pretty@^13.0.0` - Logging
+
+### Start Development Server
+
+Run the Next.js development server:
+
+```bash
+npm run dev
+```
+
+The application will start at **http://localhost:3000**
+
+### Verify Installation
+
+Open your browser and navigate to `http://localhost:3000`. You should see:
+
+1. The app redirects from `/` to `/portfolio`
+2. RainbowKit wallet connection button
+3. Theme toggle (dark/light mode)
+4. Portfolio interface
+
+</Steps>
+
+## Available Scripts
+
+Defined in `package.json`:
+
+### Development
+
+```bash
+npm run dev
+```
+
+Starts the Next.js development server with:
+- Hot module replacement (HMR)
+- Fast refresh for instant updates
+- TypeScript type checking
+- Running on http://localhost:3000
+
+### Production Build
+
+```bash
+npm run build
+```
+
+Creates an optimized production build:
+- Compiles TypeScript to JavaScript
+- Bundles and minifies code
+- Optimizes images and assets
+- Generates static pages where possible
+- Output in `.next/` directory
+
+### Production Server
+
+```bash
+npm run start
+```
+
+Starts the production server:
+- Serves the built application
+- Requires running `npm run build` first
+- Runs on http://localhost:3000 by default
+
+### Linting
+
+```bash
+npm run lint
+```
+
+Runs ESLint with Next.js configuration:
+- Checks TypeScript/JavaScript code quality
+- Enforces coding standards
+- Identifies potential bugs
+- Uses `@typescript-eslint` rules
+
+## Development Workflow
+
+<Steps>
+
+### Make Code Changes
+
+Edit files in `src/` directory:
+- Components in `src/components/`
+- Pages in `src/app/`
+- Contexts in `src/context/`
+- Utilities in `src/lib/`
+
+### Hot Reload
+
+Next.js automatically:
+- Detects file changes
+- Recompiles affected modules
+- Updates browser without full reload
+- Preserves React component state
+
+### Type Checking
+
+TypeScript checks types in real-time:
+- Editor shows inline errors
+- Build fails on type errors
+- Use `@/*` path aliases for imports
+
+### Styling
+
+Add Tailwind classes directly in JSX:
+
+```tsx
+<div className="flex items-center gap-4 p-6 bg-card rounded-lg">
+  {/* content */}
+</div>
+```
+
+Use the `cn()` utility for conditional classes:
+
+```tsx
+import { cn } from "@/lib/utils"
+
+<button className={cn(
+  "base-styles",
+  isActive && "active-styles"
+)}>
+```
+
+### Testing Web3 Features
+
+1. Connect MetaMask to Sepolia testnet
+2. Get test ETH from Sepolia faucet
+3. Use RainbowKit connect button
+4. Interact with contract at `0x96127ffA4375Aee0acF87443d508f2F2bd3f4620`
+
+</Steps>
+
+## Troubleshooting
+
+### Port Already in Use
+
+If port 3000 is occupied:
+
+```bash
+# Use different port
+PORT=3001 npm run dev
+```
+
+### Module Not Found
+
+Clear cache and reinstall:
+
+```bash
+rm -rf node_modules .next
+npm install
+npm run dev
+```
+
+### TypeScript Errors
+
+Restart TypeScript server in VS Code:
+- `Cmd/Ctrl + Shift + P`
+- "TypeScript: Restart TS Server"
+
+### Web3 Connection Issues
+
+Check:
+- MetaMask is installed and unlocked
+- Connected to Sepolia network
+- RainbowKit projectId is valid
+- Browser console for errors
+
+### Build Failures
+
+Common fixes:
+
+```bash
+# Clear Next.js cache
+rm -rf .next
+
+# Update dependencies
+npm update
+
+# Check for TypeScript errors
+npx tsc --noEmit
+```
+
+## IDE Configuration
+
+### VS Code Extensions
+
+Recommended extensions:
+- **ES7+ React/Redux/React-Native snippets**
+- **Tailwind CSS IntelliSense**
+- **TypeScript Vue Plugin (Volar)**
+- **ESLint**
+- **Prettier**
+
+### Settings
+
+Add to `.vscode/settings.json`:
+
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "tailwindCSS.experimental.classRegex": [
+    ["cn\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
+  ]
+}
+```
+
+## Next Steps
+
+After setup is complete:
+
+1. Review [Architecture](/development/architecture) to understand the codebase
+2. Check [Configuration](/development/configuration) for environment setup
+3. Explore the source code in `src/` directory
+4. Read component documentation in `src/components/`
+5. Test Web3 features on Sepolia testnet

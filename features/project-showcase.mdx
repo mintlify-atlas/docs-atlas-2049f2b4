@@ -1,0 +1,486 @@
+---
+title: Project Showcase
+description: Display your projects using browser localStorage storage
+icon: folder-open
+---
+
+## Overview
+
+The project showcase feature allows you to display your personal projects alongside your on-chain work experiences. Unlike experiences, projects are currently stored in browser **localStorage** for instant updates without gas fees.
+
+<Warning>
+  Projects are stored **off-chain** in your browser's localStorage. This means they are device-specific and will be lost if you clear your browser data.
+</Warning>
+
+## Adding Projects
+
+Projects are added through a dedicated form at `/form/projects`:
+
+### Project Form Interface
+
+```tsx src/app/form/projects/page.tsx
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+export default function ProjectsForm() {
+  const router = useRouter();
+  const [projects, setProjects] = useState([
+    { name: '', link: '', description: '' }
+  ]);
+
+  useEffect(() => {
+    const savedData = localStorage.getItem('portfolioProjects');
+    if (savedData) {
+      setProjects(JSON.parse(savedData));
+    }
+  }, []);
+
+  const handleProjectChange = (index: number, field: string, value: string) => {
+    const newProjects = [...projects];
+    newProjects[index] = { ...newProjects[index], [field]: value };
+    setProjects(newProjects);
+  };
+
+  const addProject = () => {
+    setProjects([...projects, { name: '', link: '', description: '' }]);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem('portfolioProjects', JSON.stringify(projects));
+    router.push('/portfolio');
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {projects.map((project, index) => (
+        <div key={index}>
+          <Input
+            value={project.name}
+            onChange={(e) => handleProjectChange(index, 'name', e.target.value)}
+            placeholder="Project Name"
+          />
+          <Input
+            value={project.link}
+            onChange={(e) => handleProjectChange(index, 'link', e.target.value)}
+            placeholder="Project Link"
+          />
+          <Textarea
+            value={project.description}
+            onChange={(e) => handleProjectChange(index, 'description', e.target.value)}
+            placeholder="Project Description"
+          />
+        </div>
+      ))}
+      <Button type="button" onClick={addProject}>
+        Add Project
+      </Button>
+      <Button type="submit">
+        Save and View Portfolio
+      </Button>
+    </form>
+  );
+}
+```
+
+### Project Fields
+
+<ParamField path="name" type="string" required>
+  The name of your project (e.g., "DeFi Swap dApp", "NFT Marketplace")
+</ParamField>
+
+<ParamField path="link" type="string" required>
+  URL to the project (GitHub repository, live demo, or documentation)
+</ParamField>
+
+<ParamField path="description" type="string" required>
+  Brief description of the project, technologies used, and key features
+</ParamField>
+
+## User Workflow
+
+<Steps>
+  <Step title="Navigate to Projects Form">
+    Go to `/form/projects` or click **Add Project** from the experience form
+  </Step>
+  
+  <Step title="Fill Project Details">
+    Enter project name, link, and description for your first project
+  </Step>
+  
+  <Step title="Add More Projects (Optional)">
+    Click **Add Project** to create additional project entries in the same form
+  </Step>
+  
+  <Step title="Save Projects">
+    Click **Save and View Portfolio** to store projects in localStorage and navigate to your portfolio
+  </Step>
+  
+  <Step title="View on Portfolio">
+    Projects appear in a grid layout on your portfolio page
+  </Step>
+</Steps>
+
+<Info>
+  You can add as many projects as you want. Each click of **Add Project** adds a new set of input fields to the form.
+</Info>
+
+## Multiple Projects Management
+
+The form supports dynamic project management:
+
+```typescript
+const [projects, setProjects] = useState([
+  { name: '', link: '', description: '' }
+]);
+
+// Add new project
+const addProject = () => {
+  setProjects([...projects, { name: '', link: '', description: '' }]);
+};
+
+// Update existing project
+const handleProjectChange = (index: number, field: string, value: string) => {
+  const newProjects = [...projects];
+  newProjects[index] = { ...newProjects[index], [field]: value };
+  setProjects(newProjects);
+};
+```
+
+<CardGroup cols={2}>
+  <Card title="Dynamic Forms" icon="plus">
+    Add unlimited project entries by clicking **Add Project**
+  </Card>
+  <Card title="Individual Updates" icon="pencil">
+    Each project has its own input fields that update independently
+  </Card>
+</CardGroup>
+
+## LocalStorage Integration
+
+Projects are stored in browser localStorage under the key `portfolioProjects`:
+
+### Saving Projects
+
+```typescript
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  localStorage.setItem('portfolioProjects', JSON.stringify(projects));
+  router.push('/portfolio');
+};
+```
+
+### Loading Projects
+
+The form automatically loads previously saved projects:
+
+```typescript
+useEffect(() => {
+  const savedData = localStorage.getItem('portfolioProjects');
+  if (savedData) {
+    setProjects(JSON.parse(savedData));
+  }
+}, []);
+```
+
+<Note>
+  Projects are loaded when the form mounts, allowing you to edit existing projects or add new ones.
+</Note>
+
+## Displaying Projects on Portfolio
+
+Projects are displayed in a grid layout on the portfolio page:
+
+```javascript src/app/portfolio/page.js
+const [portfolioData, setPortfolioData] = useState();
+
+useEffect(() => {
+  const projects = JSON.parse(
+    localStorage.getItem("portfolioProjects") || "[]"
+  );
+  setPortfolioData({ ...portfolioData, projects });
+}, []);
+
+return (
+  <Card>
+    <CardContent>
+      <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-4">
+        <h2 className="text-xl font-semibold flex items-center text-white">
+          <FolderGit2 className="mr-2" /> Projects
+        </h2>
+      </div>
+      <div className="p-4 grid gap-4 md:grid-cols-2">
+        {portfolioData.projects.map((project, index) => (
+          <div key={index} className="bg-gray-800 rounded-lg p-4">
+            <h3 className="font-semibold text-cyan-400 flex items-center justify-between">
+              {project.name}
+              <a href={project.link} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </h3>
+            <p className="mt-2 text-gray-300 text-sm">
+              {project.description}
+            </p>
+          </div>
+        ))}
+      </div>
+    </CardContent>
+  </Card>
+);
+```
+
+### Project Card Display
+
+Each project is displayed as a card with:
+- **Project Name** (cyan-colored heading)
+- **External Link Icon** (clickable, opens in new tab)
+- **Description** (gray text, smaller font)
+- **Hover Effects** (shadow and transition effects)
+
+<Frame>
+  <img src="/images/projects-grid.png" alt="Projects displayed in a two-column grid" />
+</Frame>
+
+## Data Persistence
+
+<CardGroup cols={2}>
+  <Card title="Advantages" icon="check">
+    - No gas fees
+    - Instant updates
+    - No wallet required
+    - Unlimited edits
+    - Fast retrieval
+  </Card>
+  <Card title="Limitations" icon="triangle-exclamation">
+    - Browser-specific
+    - Lost on cache clear
+    - Not portable across devices
+    - No blockchain verification
+    - Single browser only
+  </Card>
+</CardGroup>
+
+### LocalStorage vs Blockchain
+
+<Tabs>
+  <Tab title="localStorage (Projects)">
+    ```javascript
+    // No wallet needed
+    localStorage.setItem('portfolioProjects', JSON.stringify(projects));
+    
+    // Instant, no transaction
+    const projects = JSON.parse(localStorage.getItem('portfolioProjects'));
+    
+    // Can edit/delete freely
+    localStorage.removeItem('portfolioProjects');
+    ```
+    
+    - Free and instant
+    - Easy to edit
+    - Browser-dependent
+  </Tab>
+  
+  <Tab title="Blockchain (Experiences)">
+    ```javascript
+    // Requires wallet
+    const { writeContract } = useWriteContract();
+    
+    // Transaction required (gas fees)
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      functionName: "addWork",
+      args: [role, description, link, company]
+    });
+    
+    // Immutable - cannot edit
+    const { data } = useReadContract({
+      functionName: "getAllWork"
+    });
+    ```
+    
+    - Requires gas fees
+    - Immutable storage
+    - Portable across devices
+  </Tab>
+</Tabs>
+
+## Navigation Between Forms
+
+The projects form includes navigation to other sections:
+
+```jsx
+<div className="flex justify-between">
+  <Link href="/form/experience">
+    <Button className="gradient-button text-white">
+      <span>Back to Experience</span>
+    </Button>
+  </Link>
+  <Button type="submit" className="gradient-button text-white">
+    <span>Save and View Portfolio</span>
+  </Button>
+</div>
+```
+
+<Steps>
+  <Step title="Back to Experience">
+    Returns to the experience form to add or edit work experiences
+  </Step>
+  
+  <Step title="Save and View Portfolio">
+    Saves all projects and navigates to the portfolio page
+  </Step>
+</Steps>
+
+## Editing Existing Projects
+
+To edit projects:
+
+1. Navigate to `/form/projects`
+2. Form automatically loads existing projects from localStorage
+3. Modify any field(s)
+4. Click **Save and View Portfolio**
+5. Changes are immediately reflected on your portfolio
+
+<Tip>
+  The form is pre-populated with existing projects, making it easy to add new ones or modify existing entries.
+</Tip>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Descriptive Names" icon="heading">
+    Use clear, memorable project names that reflect what the project does
+  </Card>
+  
+  <Card title="Working Links" icon="link">
+    Always test links before saving (GitHub repos, live demos, or documentation sites)
+  </Card>
+  
+  <Card title="Concise Descriptions" icon="align-left">
+    Keep descriptions brief but informative - highlight key technologies and features
+  </Card>
+  
+  <Card title="Regular Backups" icon="floppy-disk">
+    Consider exporting project data periodically since it's stored locally
+  </Card>
+</CardGroup>
+
+## Future Enhancements
+
+<Note>
+  Future versions may include:
+  - On-chain project storage option
+  - Import/export functionality
+  - Cloud backup integration
+  - Project categories/tags
+  - Image attachments
+</Note>
+
+## Data Structure
+
+Projects are stored as JSON in localStorage:
+
+```json
+[
+  {
+    "name": "DeFi Swap Protocol",
+    "link": "https://github.com/username/defi-swap",
+    "description": "Decentralized exchange protocol built with Solidity and React. Features include liquidity pools, token swaps, and yield farming."
+  },
+  {
+    "name": "NFT Marketplace",
+    "link": "https://nft-marketplace-demo.vercel.app",
+    "description": "Full-stack NFT marketplace with minting, buying, and selling capabilities. Built with Next.js and Hardhat."
+  }
+]
+```
+
+## Complete Example
+
+```typescript
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+interface Project {
+  name: string;
+  link: string;
+  description: string;
+}
+
+export default function ProjectsForm() {
+  const router = useRouter();
+  const [projects, setProjects] = useState<Project[]>([
+    { name: '', link: '', description: '' }
+  ]);
+
+  // Load existing projects
+  useEffect(() => {
+    const saved = localStorage.getItem('portfolioProjects');
+    if (saved) {
+      setProjects(JSON.parse(saved));
+    }
+  }, []);
+
+  // Add new project entry
+  const addProject = () => {
+    setProjects([...projects, { name: '', link: '', description: '' }]);
+  };
+
+  // Update project field
+  const updateProject = (index: number, field: keyof Project, value: string) => {
+    const updated = [...projects];
+    updated[index] = { ...updated[index], [field]: value };
+    setProjects(updated);
+  };
+
+  // Save and redirect
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem('portfolioProjects', JSON.stringify(projects));
+    router.push('/portfolio');
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {projects.map((project, i) => (
+        <div key={i}>
+          <input
+            value={project.name}
+            onChange={(e) => updateProject(i, 'name', e.target.value)}
+            placeholder="Project Name"
+          />
+          <input
+            value={project.link}
+            onChange={(e) => updateProject(i, 'link', e.target.value)}
+            placeholder="Project Link"
+          />
+          <textarea
+            value={project.description}
+            onChange={(e) => updateProject(i, 'description', e.target.value)}
+            placeholder="Description"
+          />
+        </div>
+      ))}
+      <button type="button" onClick={addProject}>Add Project</button>
+      <button type="submit">Save</button>
+    </form>
+  );
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="View Portfolio" icon="eye" href="/features/portfolio-management">
+    See how projects are displayed alongside experiences
+  </Card>
+  <Card title="Add Experiences" icon="briefcase" href="/features/experience-tracking">
+    Add on-chain work experiences
+  </Card>
+  <Card title="Storage Comparison" icon="database" href="/features/portfolio-management#data-storage-comparison">
+    Compare on-chain vs off-chain storage
+  </Card>
+  <Card title="Configuration" icon="gear" href="/development/configuration">
+    Customize storage and display settings
+  </Card>
+</CardGroup>

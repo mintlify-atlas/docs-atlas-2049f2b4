@@ -1,0 +1,181 @@
+---
+title: Welcome to Onchain Portfolio
+description: Build and showcase your professional experience on the blockchain with decentralized, verifiable portfolio records
+---
+
+<img
+  className="block dark:hidden"
+  src="/images/hero-light.svg"
+  alt="Onchain Portfolio Hero Light"
+/>
+<img
+  className="hidden dark:block"
+  src="/images/hero-dark.svg"
+  alt="Onchain Portfolio Hero Dark"
+/>
+
+## Your Professional Journey, On-Chain
+
+Onchain Portfolio is a decentralized application that allows you to create, store, and showcase your professional experience directly on the blockchain. Built on Ethereum Sepolia testnet, it provides an immutable, verifiable record of your work history and projects.
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick Start"
+    icon="rocket"
+    href="/quickstart"
+    color="#a855f7"
+  >
+    Get your portfolio on-chain in under 5 minutes
+  </Card>
+  <Card
+    title="Installation"
+    icon="download"
+    href="/installation"
+    color="#ec4899"
+  >
+    Complete setup guide for local development
+  </Card>
+  <Card
+    title="Smart Contract"
+    icon="file-contract"
+    href="/contracts/overview"
+    color="#8b5cf6"
+  >
+    Explore the Portfolio smart contract interface
+  </Card>
+  <Card
+    title="Configuration"
+    icon="sliders"
+    href="/development/configuration"
+    color="#d946ef"
+  >
+    Customize your portfolio and wallet setup
+  </Card>
+</CardGroup>
+
+## Key Features
+
+<AccordionGroup>
+  <Accordion icon="wallet" title="Web3 Wallet Integration">
+    Connect your wallet using RainbowKit with support for multiple wallet providers. Built on wagmi v2 and viem for robust Ethereum interactions.
+  </Accordion>
+
+  <Accordion icon="briefcase" title="Immutable Work History">
+    Store your professional experience on-chain with the `addWork` function. Each entry includes your role, company, description, link, and timestamp.
+  </Accordion>
+
+  <Accordion icon="eye" title="Beautiful Portfolio Display">
+    Showcase your experience with a modern, gradient-themed UI built with Next.js 14, React, and Tailwind CSS.
+  </Accordion>
+
+  <Accordion icon="shield" title="Decentralized & Verifiable">
+    Your portfolio data is stored on Ethereum Sepolia testnet, providing transparency and immutability.
+  </Accordion>
+</AccordionGroup>
+
+## Technology Stack
+
+Onchain Portfolio is built with modern web3 technologies:
+
+<CardGroup cols={3}>
+  <Card title="Next.js 14" icon="react">
+    React framework with App Router
+  </Card>
+  <Card title="RainbowKit 2.2" icon="wallet">
+    Best-in-class wallet connection
+  </Card>
+  <Card title="wagmi v2" icon="ethereum-sign">
+    React Hooks for Ethereum
+  </Card>
+  <Card title="viem" icon="code">
+    TypeScript interface for Ethereum
+  </Card>
+  <Card title="Tailwind CSS" icon="paintbrush">
+    Utility-first CSS framework
+  </Card>
+  <Card title="shadcn/ui" icon="palette">
+    Beautifully designed components
+  </Card>
+</CardGroup>
+
+## Smart Contract
+
+The Portfolio smart contract is deployed on Ethereum Sepolia testnet:
+
+<Note>
+  **Contract Address:** `0x96127ffA4375Aee0acF87443d508f2F2bd3f4620`
+  
+  **Network:** Sepolia Testnet
+</Note>
+
+### Core Functions
+
+```solidity
+// Add work experience to your portfolio
+function addWork(
+  string _role,
+  string _description, 
+  string _link,
+  string _company
+) public
+
+// Retrieve all work experiences
+function getAllWork() public view returns (ProofOfWork[] memory)
+```
+
+## Design Philosophy
+
+Onchain Portfolio features a distinctive purple-to-pink gradient theme that runs throughout the application:
+
+<CodeGroup>
+
+```css Gradient Classes
+/* Primary gradient - used for headings and emphasis */
+background: linear-gradient(to right, #c084fc, #ec4899);
+
+/* Glass morphism effect */
+.glass {
+  backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.5);
+}
+```
+
+```jsx Gradient Button Example
+<Button className="gradient-button text-white">
+  <span>Add Experience</span>
+</Button>
+```
+
+</CodeGroup>
+
+## What's Next?
+
+<Steps>
+  <Step title="Set Up Your Environment">
+    Follow the [installation guide](/installation) to clone the repository and install dependencies.
+  </Step>
+  
+  <Step title="Connect Your Wallet">
+    Use the [quickstart guide](/quickstart) to connect your wallet and add your first experience.
+  </Step>
+  
+  <Step title="Explore the Contract">
+    Learn about the smart contract functions and how to interact with them.
+  </Step>
+  
+  <Step title="Customize Your Portfolio">
+    Personalize your portfolio with your own information and styling.
+  </Step>
+</Steps>
+
+<Warning>
+  This application is deployed on Sepolia testnet. Make sure you have Sepolia ETH in your wallet before adding experiences.
+</Warning>
+
+## Community
+
+Onchain Portfolio is built by [Bhopal DAO](https://x.com/Bhopal_Dao), a pioneering blockchain community fostering collaboration, innovation, and growth in the Web3 space.
+
+Join the community:
+- [Twitter/X](https://x.com/Bhopal_Dao)
+- [LinkedIn](https://www.linkedin.com/company/bhopal-dao/)

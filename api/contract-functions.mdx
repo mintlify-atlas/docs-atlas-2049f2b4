@@ -1,0 +1,181 @@
+---
+title: 'Contract Functions'
+description: 'Smart contract functions for the Portfolio contract'
+icon: 'code'
+---
+
+The Portfolio smart contract provides functions to manage proof-of-work entries on-chain. All functions interact with the deployed contract at the configured address.
+
+## addWork
+
+Adds a new proof-of-work entry to the portfolio. This function stores work experience data on-chain.
+
+<ParamField path="_role" type="string" required>
+  The job title or role (e.g., "Senior Developer", "Product Manager")
+</ParamField>
+
+<ParamField path="_description" type="string" required>
+  Detailed description of the work, responsibilities, and achievements
+</ParamField>
+
+<ParamField path="_link" type="string" required>
+  URL link to the project, company website, or proof of work
+</ParamField>
+
+<ParamField path="_company" type="string" required>
+  Company or organization name
+</ParamField>
+
+### Usage Example
+
+```typescript
+import { useWriteContract } from "wagmi";
+import abi from "./contract/abi.json";
+import { CONTRACT_ADDRESS } from "./constants";
+
+const { writeContract } = useWriteContract();
+
+const addWorkEntry = async () => {
+  await writeContract({
+    address: CONTRACT_ADDRESS,
+    abi,
+    functionName: "addWork",
+    args: [
+      "Senior Frontend Developer",
+      "Led the development of user interfaces using React and TypeScript",
+      "https://company.com/project",
+      "Tech Company Inc."
+    ],
+  });
+};
+```
+
+**Source:** `src/app/form/experience/page.tsx:33-38`
+
+---
+
+## getAllWork
+
+Retrieves all proof-of-work entries from the portfolio contract.
+
+<ResponseField name="ProofOfWork[]" type="array">
+  Array of all work entries stored in the contract
+  
+  <ResponseField name="role" type="string">
+    The job title or role
+  </ResponseField>
+  
+  <ResponseField name="description" type="string">
+    Work description and achievements
+  </ResponseField>
+  
+  <ResponseField name="link" type="string">
+    URL to project or proof of work
+  </ResponseField>
+  
+  <ResponseField name="company" type="string">
+    Company or organization name
+  </ResponseField>
+  
+  <ResponseField name="timestamp" type="uint256">
+    Unix timestamp when the entry was added
+  </ResponseField>
+</ResponseField>
+
+### Usage Example
+
+```typescript
+import { useReadContract } from "wagmi";
+import abi from "./contract/abi.json";
+import { CONTRACT_ADDRESS } from "./constants";
+
+const { data: works } = useReadContract({
+  address: CONTRACT_ADDRESS,
+  abi,
+  functionName: "getAllWork",
+});
+
+// works will contain array of ProofOfWork objects
+console.log(works);
+```
+
+---
+
+## portfolio
+
+Retrieves a specific proof-of-work entry by index.
+
+<ParamField path="index" type="uint256" required>
+  The index of the portfolio entry to retrieve (0-based)
+</ParamField>
+
+<ResponseField name="role" type="string">
+  The job title or role
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Work description and achievements
+</ResponseField>
+
+<ResponseField name="link" type="string">
+  URL to project or proof of work
+</ResponseField>
+
+<ResponseField name="company" type="string">
+  Company or organization name
+</ResponseField>
+
+<ResponseField name="timestamp" type="uint256">
+  Unix timestamp when the entry was added
+</ResponseField>
+
+### Usage Example
+
+```typescript
+import { useReadContract } from "wagmi";
+import abi from "./contract/abi.json";
+import { CONTRACT_ADDRESS } from "./constants";
+
+const { data: work } = useReadContract({
+  address: CONTRACT_ADDRESS,
+  abi,
+  functionName: "portfolio",
+  args: [0], // Get first entry
+});
+
+console.log(work);
+```
+
+---
+
+## owner
+
+Returns the Ethereum address of the contract owner.
+
+<ResponseField name="address" type="address">
+  The Ethereum address of the contract owner
+</ResponseField>
+
+### Usage Example
+
+```typescript
+import { useReadContract } from "wagmi";
+import abi from "./contract/abi.json";
+import { CONTRACT_ADDRESS } from "./constants";
+
+const { data: ownerAddress } = useReadContract({
+  address: CONTRACT_ADDRESS,
+  abi,
+  functionName: "owner",
+});
+
+console.log(`Contract owner: ${ownerAddress}`);
+```
+
+---
+
+## Contract ABI
+
+The complete contract ABI is available in `src/app/contract/abi.json`:
+
+**Source:** `src/app/contract/abi.json`

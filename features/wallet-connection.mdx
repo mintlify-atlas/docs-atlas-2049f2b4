@@ -1,0 +1,211 @@
+---
+title: Wallet Connection
+description: Connect your Web3 wallet using RainbowKit on the Sepolia testnet
+icon: wallet
+---
+
+## Overview
+
+Onchain Portfolio uses **RainbowKit** to provide a seamless wallet connection experience. The application is configured to work on the **Sepolia testnet**, allowing you to interact with smart contracts without using real ETH.
+
+## RainbowKit Integration
+
+The wallet connection functionality is powered by RainbowKit, which provides:
+
+- Multiple wallet support (MetaMask, WalletConnect, Coinbase Wallet, etc.)
+- Beautiful, customizable UI components
+- Automatic network switching
+- Account management
+
+### Configuration
+
+The RainbowKit setup is configured in `src/context/RainbowKitContext.js`:
+
+```javascript src/context/RainbowKitContext.js
+import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { WagmiProvider } from "wagmi";
+import { sepolia } from "wagmi/chains";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+
+const config = getDefaultConfig({
+  appName: "My RainbowKit App",
+  projectId: "9b4a97010a2d03a05e71209f233ab457",
+  chains: [sepolia],
+  ssr: true,
+});
+
+const queryClient = new QueryClient();
+
+export const RainbowProvider = ({ children }) => {
+  return (
+    <RainbowKitContext.Provider value={config}>
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider>{children}</RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </RainbowKitContext.Provider>
+  );
+};
+```
+
+### Provider Setup
+
+The RainbowKit provider wraps your entire application in `src/app/layout.tsx`:
+
+```tsx src/app/layout.tsx
+import { RainbowProvider } from "@/context/RainbowKitContext";
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <RainbowProvider>
+          <ThemeProvider>
+            <main>{children}</main>
+          </ThemeProvider>
+        </RainbowProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+## Using the Connect Button
+
+RainbowKit provides a pre-built `ConnectButton` component that handles the entire wallet connection flow:
+
+```jsx src/app/portfolio/page.js
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+
+export default function PortfolioPage() {
+  return (
+    <header>
+      <div className="container flex h-14 items-center">
+        <div className="justify-center w-full hidden md:flex">
+          <ConnectButton />
+        </div>
+      </div>
+    </header>
+  );
+}
+```
+
+The `ConnectButton` automatically displays:
+- "Connect Wallet" when disconnected
+- Account address and balance when connected
+- Network switcher if on wrong network
+- Account modal with disconnect option
+
+## Sepolia Network
+
+<Info>
+  **Why Sepolia?** Sepolia is an Ethereum testnet that allows you to test smart contract interactions without spending real ETH. It's ideal for development and testing.
+</Info>
+
+### Network Details
+
+- **Network Name**: Sepolia
+- **Chain ID**: 11155111
+- **Currency**: SepoliaETH (test ETH)
+- **RPC URL**: Provided automatically by Wagmi
+
+### Getting Test ETH
+
+To interact with the portfolio contract, you'll need test ETH:
+
+<Steps>
+  <Step title="Get Sepolia ETH from a faucet">
+    Visit [Sepolia Faucet](https://sepoliafaucet.com/) or [Alchemy Sepolia Faucet](https://www.alchemy.com/faucets/ethereum-sepolia)
+  </Step>
+  <Step title="Connect your wallet">
+    Click the **Connect Wallet** button in the application
+  </Step>
+  <Step title="Switch to Sepolia network">
+    If you're on a different network, RainbowKit will prompt you to switch
+  </Step>
+</Steps>
+
+## Accessing Wallet Information
+
+Use Wagmi hooks to access wallet information in your components:
+
+```javascript
+import { useAccount } from "wagmi";
+
+export default function MyComponent() {
+  const { address, isConnected } = useAccount();
+  
+  if (!isConnected) {
+    return <div>Please connect your wallet</div>;
+  }
+  
+  return <div>Connected: {address}</div>;
+}
+```
+
+### Available Hooks
+
+<CardGroup cols={2}>
+  <Card title="useAccount" icon="user">
+    Access connected wallet address and connection status
+  </Card>
+  <Card title="useWriteContract" icon="pen">
+    Write to smart contracts (add experiences)
+  </Card>
+  <Card title="useReadContract" icon="book">
+    Read from smart contracts (fetch portfolio data)
+  </Card>
+  <Card title="useBalance" icon="coins">
+    Check wallet balance
+  </Card>
+</CardGroup>
+
+## Customization
+
+You can customize the RainbowKit appearance to match your theme:
+
+```javascript
+import { darkTheme } from '@rainbow-me/rainbowkit';
+
+<RainbowKitProvider theme={darkTheme()}>
+  {children}
+</RainbowKitProvider>
+```
+
+<Note>
+  The current implementation uses the default RainbowKit theme, which automatically adapts to light/dark mode.
+</Note>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Wallet not connecting">
+    - Ensure you have a Web3 wallet installed (MetaMask, Coinbase Wallet, etc.)
+    - Check that your wallet is unlocked
+    - Try refreshing the page
+  </Accordion>
+  
+  <Accordion title="Wrong network">
+    - RainbowKit will prompt you to switch to Sepolia
+    - Click the network switcher in the connect button
+    - Manually add Sepolia network to your wallet if needed
+  </Accordion>
+  
+  <Accordion title="Transaction failing">
+    - Ensure you have enough Sepolia ETH for gas
+    - Check that you're connected to the correct account
+    - Verify the contract address is correct
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Portfolio Management" icon="chart-line" href="/features/portfolio-management">
+    Learn how your portfolio data is displayed
+  </Card>
+  <Card title="Experience Tracking" icon="briefcase" href="/features/experience-tracking">
+    Add work experiences on-chain
+  </Card>
+</CardGroup>

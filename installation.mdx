@@ -1,0 +1,511 @@
+---
+title: Installation
+description: Complete setup guide for Onchain Portfolio - dependencies, configuration, and development environment
+---
+
+## Prerequisites
+
+Before installing Onchain Portfolio, ensure you have the following:
+
+<CardGroup cols={2}>
+  <Card title="Node.js" icon="node-js">
+    Version 18.0 or higher
+  </Card>
+  <Card title="npm or yarn" icon="box">
+    Package manager for dependencies
+  </Card>
+  <Card title="Web3 Wallet" icon="wallet">
+    MetaMask, Coinbase Wallet, or compatible
+  </Card>
+  <Card title="Sepolia ETH" icon="ethereum-sign">
+    For testnet transactions
+  </Card>
+</CardGroup>
+
+## Installation Steps
+
+<Steps>
+  <Step title="Clone the Repository">
+    Clone the Onchain Portfolio repository to your local machine:
+    
+    ```bash
+    git clone <repository-url>
+    cd onchain-portfolio
+    ```
+  </Step>
+
+  <Step title="Install Dependencies">
+    Install all required packages using npm:
+    
+    ```bash
+    npm install
+    ```
+    
+    This will install all dependencies listed in `package.json`, including:
+    - Next.js 14.2.35
+    - React 18.2.0
+    - RainbowKit 2.2.0
+    - wagmi 2.13.2
+    - viem 2.21.52
+    - And more...
+  </Step>
+
+  <Step title="Environment Setup">
+    The application is pre-configured for Sepolia testnet with the deployed contract address:
+    
+    ```javascript src/app/constants.js
+    export const CONTRACT_ADDRESS = "0x96127ffA4375Aee0acF87443d508f2F2bd3f4620";
+    ```
+    
+    <Note>
+      No `.env` file is required for basic usage. The contract address and network configuration are already set up.
+    </Note>
+  </Step>
+
+  <Step title="Start Development Server">
+    Run the development server:
+    
+    ```bash
+    npm run dev
+    ```
+    
+    The application will be available at [http://localhost:3000](http://localhost:3000)
+    
+    <Info>
+      The app will automatically redirect from the homepage to `/portfolio`
+    </Info>
+  </Step>
+
+  <Step title="Configure Your Wallet">
+    In your Web3 wallet (MetaMask, etc.):
+    
+    1. Add Sepolia testnet if not already added
+    2. Get free Sepolia ETH from a faucet
+    3. Connect your wallet to the application
+    
+    <Warning>
+      Make sure you're on **Sepolia Testnet**, not Ethereum mainnet. Transactions on mainnet will cost real ETH.
+    </Warning>
+  </Step>
+</Steps>
+
+## Package.json Overview
+
+Here's what's included in the project dependencies:
+
+<CodeGroup>
+
+```json package.json
+{
+  "name": "onchain-portfolio",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@rainbow-me/rainbowkit": "^2.2.0",
+    "@tanstack/react-query": "^5.61.5",
+    "wagmi": "^2.13.2",
+    "viem": "^2.21.52",
+    "next": "14.2.35",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "next-themes": "^0.4.3",
+    "lucide-react": "^0.462.0",
+    "tailwindcss": "^3.4.15",
+    "@radix-ui/react-label": "^2.1.0",
+    "@radix-ui/react-slot": "^1.1.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.5",
+    "tailwindcss-animate": "^1.0.7"
+  }
+}
+```
+
+</CodeGroup>
+
+## Key Dependencies Explained
+
+<AccordionGroup>
+  <Accordion title="RainbowKit (^2.2.0)" icon="wallet">
+    Best-in-class wallet connection UI for React applications. Provides:
+    - Multiple wallet support (MetaMask, Coinbase, WalletConnect, etc.)
+    - Beautiful, customizable connection modal
+    - Automatic wallet state management
+    - Network switching capabilities
+    
+    ```typescript Usage in RainbowKitContext.js
+    import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+    import "@rainbow-me/rainbowkit/styles.css";
+    ```
+  </Accordion>
+
+  <Accordion title="wagmi (^2.13.2)" icon="react">
+    React Hooks library for Ethereum. Provides hooks for:
+    - Reading from smart contracts (`useReadContract`)
+    - Writing to smart contracts (`useWriteContract`)
+    - Account management (`useAccount`)
+    - Network information
+    
+    ```typescript Example Usage
+    import { useAccount, useReadContract, useWriteContract } from "wagmi";
+    
+    const { address } = useAccount();
+    const { data } = useReadContract({
+      address: CONTRACT_ADDRESS,
+      abi,
+      functionName: "getAllWork"
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="viem (^2.21.52)" icon="code">
+    TypeScript interface for Ethereum. Provides:
+    - Type-safe contract interactions
+    - ABI encoding/decoding
+    - Transaction formatting
+    - Low-level Ethereum utilities
+    
+    Works seamlessly with wagmi under the hood.
+  </Accordion>
+
+  <Accordion title="Next.js (14.2.35)" icon="next-js">
+    React framework with:
+    - App Router (used in this project)
+    - Server and Client Components
+    - Built-in routing
+    - Optimized performance
+    
+    ```typescript App Structure
+    src/app/
+    ├── page.tsx (redirects to /portfolio)
+    ├── layout.tsx (root layout with providers)
+    ├── portfolio/page.js (portfolio view)
+    └── form/
+        └── experience/page.tsx (add experience form)
+    ```
+  </Accordion>
+
+  <Accordion title="Tailwind CSS & shadcn/ui" icon="paintbrush">
+    Utility-first CSS framework with pre-built components:
+    - Responsive design utilities
+    - Custom gradient classes
+    - shadcn/ui components: Button, Card, Input, Textarea, Badge
+    - Dark mode support with next-themes
+    
+    ```typescript Component Example
+    import { Button } from "@/components/ui/button";
+    import { Card, CardContent } from "@/components/ui/card";
+    ```
+  </Accordion>
+
+  <Accordion title="TanStack Query (^5.61.5)" icon="database">
+    Powerful data synchronization for React:
+    - Automatic caching
+    - Background refetching
+    - Required by RainbowKit for optimal performance
+    
+    ```typescript Setup in RainbowKitContext.js
+    import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+    
+    const queryClient = new QueryClient();
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Project Structure
+
+<CodeGroup>
+
+```bash Directory Structure
+onchain-portfolio/
+├── src/
+│   ├── app/
+│   │   ├── constants.js           # Contract address
+│   │   ├── page.tsx               # Root page (redirects)
+│   │   ├── layout.tsx             # Root layout with providers
+│   │   ├── globals.css            # Global styles & gradients
+│   │   ├── contract/
+│   │   │   └── abi.json          # Smart contract ABI
+│   │   ├── portfolio/
+│   │   │   └── page.js           # Portfolio view page
+│   │   └── form/
+│   │       └── experience/
+│   │           └── page.tsx      # Add experience form
+│   ├── components/
+│   │   ├── ui/                    # shadcn/ui components
+│   │   │   ├── button.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── textarea.tsx
+│   │   │   ├── badge.tsx
+│   │   │   └── label.tsx
+│   │   └── theme-toggle.tsx       # Dark mode toggle
+│   ├── context/
+│   │   ├── RainbowKitContext.js   # Wallet provider setup
+│   │   └── ThemeContext.tsx       # Theme provider
+│   └── lib/
+│       └── utils.ts               # Utility functions
+├── package.json
+├── next.config.js
+├── tailwind.config.ts
+└── tsconfig.json
+```
+
+</CodeGroup>
+
+## Configuration Files
+
+### RainbowKit Configuration
+
+The wallet connection is configured in `src/context/RainbowKitContext.js`:
+
+```typescript src/context/RainbowKitContext.js
+"use client";
+import React, { createContext } from "react";
+import "@rainbow-me/rainbowkit/styles.css";
+import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { WagmiProvider } from "wagmi";
+import { sepolia } from "wagmi/chains";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+
+const config = getDefaultConfig({
+  appName: "My RainbowKit App",
+  projectId: "9b4a97010a2d03a05e71209f233ab457", // WalletConnect project ID
+  chains: [sepolia],
+  ssr: true, // Enable server-side rendering
+});
+
+export const RainbowKitContext = createContext();
+const queryClient = new QueryClient();
+
+export const RainbowProvider = ({ children }) => {
+  return (
+    <RainbowKitContext.Provider value={config}>
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider>{children}</RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </RainbowKitContext.Provider>
+  );
+};
+```
+
+### Root Layout
+
+Providers are wrapped in `src/app/layout.tsx`:
+
+```typescript src/app/layout.tsx
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/context/ThemeContext";
+import { RainbowProvider } from "@/context/RainbowKitContext";
+
+const inter = Inter({ subsets: ["latin"] });
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <RainbowProvider>
+          <ThemeProvider>
+            <main className="min-h-screen bg-background text-foreground">
+              {children}
+            </main>
+          </ThemeProvider>
+        </RainbowProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### Tailwind Configuration
+
+```typescript tailwind.config.ts
+export default {
+  darkMode: ["class"],
+  content: [
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+```
+
+### Global Styles
+
+The purple-to-pink gradient theme is defined in `src/app/globals.css`:
+
+```css src/app/globals.css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+    --primary: 210 40% 98%;
+    /* ... other CSS variables ... */
+  }
+
+  body {
+    @apply bg-gradient-to-br from-gray-900 to-black text-foreground;
+    background-attachment: fixed;
+  }
+}
+```
+
+## Smart Contract Interface
+
+The contract ABI is located at `src/app/contract/abi.json`:
+
+```json Key Functions
+[
+  {
+    "name": "addWork",
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      { "name": "_role", "type": "string" },
+      { "name": "_description", "type": "string" },
+      { "name": "_link", "type": "string" },
+      { "name": "_company", "type": "string" }
+    ],
+    "outputs": []
+  },
+  {
+    "name": "getAllWork",
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "tuple[]",
+        "components": [
+          { "name": "role", "type": "string" },
+          { "name": "description", "type": "string" },
+          { "name": "link", "type": "string" },
+          { "name": "company", "type": "string" },
+          { "name": "timestamp", "type": "uint256" }
+        ]
+      }
+    ]
+  }
+]
+```
+
+## Build Commands
+
+<CodeGroup>
+
+```bash Development
+# Start development server with hot reload
+npm run dev
+
+# Access at http://localhost:3000
+```
+
+```bash Production Build
+# Create optimized production build
+npm run build
+
+# Start production server
+npm run start
+```
+
+```bash Linting
+# Run ESLint to check code quality
+npm run lint
+```
+
+</CodeGroup>
+
+## Troubleshooting Installation
+
+<AccordionGroup>
+  <Accordion title="Node version issues">
+    Make sure you're using Node.js 18.0 or higher:
+    
+    ```bash
+    node --version
+    ```
+    
+    If needed, update Node.js or use [nvm](https://github.com/nvm-sh/nvm) to manage versions.
+  </Accordion>
+
+  <Accordion title="npm install failures">
+    If you encounter errors during `npm install`:
+    
+    ```bash
+    # Clear npm cache
+    npm cache clean --force
+    
+    # Delete node_modules and package-lock.json
+    rm -rf node_modules package-lock.json
+    
+    # Reinstall
+    npm install
+    ```
+  </Accordion>
+
+  <Accordion title="Webpack/Build errors">
+    The project includes polyfills for Node.js modules in `next.config.js`. If you encounter build errors:
+    
+    1. Ensure all dependencies are installed
+    2. Check that you're using compatible versions
+    3. Try deleting `.next` folder and rebuilding:
+    
+    ```bash
+    rm -rf .next
+    npm run build
+    ```
+  </Accordion>
+
+  <Accordion title="RainbowKit connection issues">
+    If wallet connections aren't working:
+    
+    1. Check that RainbowKit styles are imported in `RainbowKitContext.js`
+    2. Verify the WalletConnect project ID is valid
+    3. Make sure providers are wrapped correctly in `layout.tsx`
+    4. Check browser console for errors
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start Guide" icon="rocket" href="/quickstart">
+    Follow the quickstart to add your first experience
+  </Card>
+  <Card title="Smart Contract Reference" icon="file-contract" href="/contracts/overview">
+    Learn about all contract functions and events
+  </Card>
+  <Card title="Features" icon="palette" href="/features/wallet-connection">
+    Explore wallet connection and portfolio features
+  </Card>
+  <Card title="Development" icon="cloud-upload" href="/development/architecture">
+    Understand the architecture and tech stack
+  </Card>
+</CardGroup>
+
+## Getting Help
+
+<Note>
+  **Need assistance?** 
+  
+  - Review the [smart contract documentation](/contracts/overview)
+  - Connect with [Bhopal DAO](https://x.com/Bhopal_Dao) community
+</Note>
